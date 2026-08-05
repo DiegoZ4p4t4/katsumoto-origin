@@ -12,6 +12,7 @@ export interface SellerInfo {
   phone: string;
   email: string;
   logoUrl?: string;
+  ticketFooter?: string;
 }
 
 export async function getSellerInfo(): Promise<SellerInfo> {
@@ -25,7 +26,7 @@ export async function getSellerInfo(): Promise<SellerInfo> {
       .single(),
     supabase
       .from("sunat_config")
-      .select("ruc, razon_social, nombre_comercial, direccion, ubigeo, departamento, provincia, distrito")
+      .select("ruc, razon_social, nombre_comercial, direccion, ubigeo, departamento, provincia, distrito, ticket_footer")
       .eq("organization_id", orgId)
       .single(),
   ]);
@@ -45,5 +46,6 @@ export async function getSellerInfo(): Promise<SellerInfo> {
     phone: org?.phone || "",
     email: org?.email || "",
     logoUrl: org?.logo_url || undefined,
+    ticketFooter: sunat?.ticket_footer || undefined,
   };
 }

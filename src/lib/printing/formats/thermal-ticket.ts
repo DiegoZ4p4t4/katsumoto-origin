@@ -93,6 +93,7 @@ function estimateHeight(invoice: Invoice, sellerInfo: SellerInfo, options?: Prin
   h += invoice.notes ? 4 : 0;
   if (options?.taxConfig && invoice.exonerada_cents > 0) h += 12;
   if (invoice.sunat_hash) h += 38;
+  if (sellerInfo.ticketFooter) h += 8;
   h += 12; // footer + margin
   return Math.max(h, 80);
 }
@@ -485,6 +486,20 @@ export async function generateThermalTicket(
     doc.setTextColor(80, 80, 80);
     ltext(`Hash: ${invoice.sunat_hash}`, y, 4.5); y += 3;
     ltext("Verifique en cpe.sunat.gob.pe", y, 4.5); y += 4;
+  }
+
+  // ═══════════════════════════════════════════
+  // FOOTER CONFIGURABLE
+  // ═══════════════════════════════════════════
+
+  if (sellerInfo.ticketFooter) {
+    sep(y); y += 3;
+    doc.setFont(FONT, "normal");
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(4.5);
+    const footerLines = doc.splitTextToSize(sellerInfo.ticketFooter, CW);
+    doc.text(footerLines, M, y);
+    y += footerLines.length * 2.5 + 2;
   }
 
   // ═══════════════════════════════════════════

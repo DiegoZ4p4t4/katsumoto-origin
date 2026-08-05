@@ -197,6 +197,7 @@ Deno.serve(async (req: Request) => {
       usuario_sol: formData.usuario_sol,
       modo_produccion: formData.modo_produccion || false,
       certificado_path: certPath,
+      ticket_footer: formData.ticket_footer || null,
     };
 
     const claveSol = (formData.clave_sol as string) || "";

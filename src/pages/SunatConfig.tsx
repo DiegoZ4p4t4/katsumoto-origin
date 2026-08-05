@@ -32,6 +32,7 @@ const emptyForm: SunatConfigFormData = {
   certificado_path: null,
   certificado_password: null,
   modo_produccion: false,
+  ticket_footer: "",
 };
 
 export default function SunatConfig() {
@@ -111,6 +112,7 @@ export default function SunatConfig() {
         certificado_path: config.certificado_path || null,
         certificado_password: null,
         modo_produccion: config.modo_produccion || false,
+        ticket_footer: config.ticket_footer || "",
       });
     }
   }, [config]);
@@ -130,7 +132,8 @@ export default function SunatConfig() {
       local.clave_sol !== "" ||
       (local.certificado_password !== null && local.certificado_password !== "") ||
       config.modo_produccion !== local.modo_produccion ||
-      config.certificado_path !== local.certificado_path
+      config.certificado_path !== local.certificado_path ||
+      config.ticket_footer !== local.ticket_footer
     );
   })();
 
@@ -334,6 +337,19 @@ export default function SunatConfig() {
                 className="rounded-xl"
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Pie de página del ticket</Label>
+            <textarea
+              placeholder="Ej: No se aceptan devoluciones pasados los 7 días. Síguenos en Facebook/Instagram."
+              value={local.ticket_footer}
+              onChange={(e) => setLocal({ ...local, ticket_footer: e.target.value })}
+              rows={3}
+              className="w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm resize-y"
+            />
+            <p className="text-xs text-muted-foreground">
+              Se imprime al pie del ticket térmico (política de garantía, redes sociales, mensajes).
+            </p>
           </div>
         </CardContent>
       </Card>

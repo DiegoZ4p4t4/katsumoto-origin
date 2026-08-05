@@ -15,6 +15,7 @@ export interface SunatConfig {
   has_certificado_password: boolean;
   modo_produccion: boolean;
   is_configured: boolean;
+  ticket_footer?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +34,7 @@ export interface SunatConfigFormData {
   certificado_path?: string | null;
   certificado_password?: string | null;
   modo_produccion?: boolean;
+  ticket_footer?: string;
 }
 
 export const INVOICE_TYPE_SUNAT_CODE: Record<string, string> = {

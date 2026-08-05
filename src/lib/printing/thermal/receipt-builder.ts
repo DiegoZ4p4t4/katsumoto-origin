@@ -400,6 +400,15 @@ export function buildTextReceipt(
     }
   }
 
+  // Configurable footer (guarantee policy, social media, etc.)
+  if (sellerInfo.ticketFooter) {
+    lines.push("");
+    sep();
+    for (const l of wrapText(sellerInfo.ticketFooter, w)) {
+      lines.push(l);
+    }
+  }
+
   // Footer
   lines.push("");
   lines.push(centerLine(`Generado por Katsumoto POS`, w));
@@ -623,6 +632,14 @@ export function buildEscposReceipt(
         for (const l of wrapText(invoice.descripcion_motivo, w)) {
           builder.line(l);
         }
+      }
+    }
+
+    // Configurable footer (guarantee policy, social media, etc.)
+    if (sellerInfo.ticketFooter) {
+      builder.newline().line(separator("-", w));
+      for (const l of wrapText(sellerInfo.ticketFooter, w)) {
+        builder.line(l);
       }
     }
 
