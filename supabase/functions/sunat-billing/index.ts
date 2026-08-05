@@ -101,13 +101,26 @@ async function updateSummaryLogStatus(
 ) {
   if (!summaryLogId) return;
 
+  const statusCode = (result.result as DbRecord | undefined)?.status_code as string | undefined;
+
+  let status: string;
+  if (!result.success) {
+    status = "rejected";
+  } else if (statusCode === "98") {
+    status = "processing";
+  } else if (statusCode === "0") {
+    status = "accepted";
+  } else {
+    status = "rejected";
+  }
+
   const update: DbRecord = {
-    status: result.success ? "accepted" : "rejected",
+    status,
     error_code: result.error_code || null,
     error_message: result.error_message || null,
   };
 
-  if (result.success && result.cdr_zip && orgId) {
+  if (status === "accepted" && result.cdr_zip && orgId) {
     const { data: log } = await (supabase.from("sunat_summary_log") as any)
       .select("tipo, fecha_referencia").eq("id", summaryLogId).single();
     if (log) {
@@ -123,8 +136,13 @@ async function updateSummaryLogStatus(
     }
   }
 
-  if (result.cdr_code) update.cdr_code = result.cdr_code;
-  if (result.cdr_description) update.cdr_description = result.cdr_description;
+  if (status === "accepted") {
+    if (statusCode) update.cdr_code = statusCode;
+    if (result.cdr_description) update.cdr_description = result.cdr_description;
+  } else if (result.cdr_code) {
+    update.cdr_code = result.cdr_code;
+    if (result.cdr_description) update.cdr_description = result.cdr_description;
+  }
 
   await (supabase.from("sunat_summary_log") as any).update(update).eq("id", summaryLogId);
 }
@@ -155,6 +173,40 @@ async function handleTicketCheck(
       result,
       orgId,
     );
+
+    const statusCode = (result.result as DbRecord | undefined)?.status_code as string | undefined;
+
+    if (kind === "summary" && statusCode && ticket) {
+      if (statusCode === "0") {
+        const cdrDescription =
+          result.error_message ||
+          (result.result as DbRecord)?.status_message ||
+          null;
+        await (supabase.from("invoices") as any)
+          .update({
+            status: "accepted",
+            sunat_cdr_code: result.cdr_code || statusCode,
+            sunat_cdr_description: cdrDescription,
+          })
+          .eq("organization_id", orgId)
+          .eq("sunat_ticket", ticket);
+      } else if (statusCode === "99") {
+        const errorMessage =
+          result.error_message ||
+          (result.result as DbRecord)?.status_message ||
+          null;
+        await (supabase.from("invoices") as any)
+          .update({
+            sunat_sent_at: null,
+            sunat_ticket: null,
+            sunat_error_code: result.error_code || statusCode,
+            sunat_error_message: errorMessage,
+          })
+          .eq("organization_id", orgId)
+          .eq("sunat_ticket", ticket);
+      }
+    }
+
     return json({ success: true, result });
   } catch (e) {
     return json({ success: false, error_message: (e as Error).message });
