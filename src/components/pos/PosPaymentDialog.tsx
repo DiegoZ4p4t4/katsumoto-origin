@@ -22,7 +22,7 @@ interface PosPaymentDialogProps {
   open: boolean;
   totalCents: Cents;
   onClose: () => void;
-  onConfirm: (method: PaymentMethod) => void;
+  onConfirm: (method: PaymentMethod, receivedCents?: number) => void;
   isPending?: boolean;
   lastInvoiceNumber?: string;
   onDownloadPDF?: () => void;
@@ -40,7 +40,7 @@ export function PosPaymentDialog({ open, totalCents, onClose, onConfirm, isPendi
   const canConfirm = method !== "cash" || receivedCents >= totalCents;
 
   const handleConfirm = () => {
-    onConfirm(method);
+    onConfirm(method, method === "cash" && cashReceived ? receivedCents : undefined);
   };
 
   const handleClose = () => {

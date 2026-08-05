@@ -41,6 +41,7 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
   const [clientId, setClientId] = useState<string>("none");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [lastInvoiceId, setLastInvoiceId] = useState<string | null>(null);
+  const [lastCashReceivedCents, setLastCashReceivedCents] = useState<number | undefined>(undefined);
   const [lastInvoiceNumber, setLastInvoiceNumber] = useState<string | undefined>();
   const [lastInvoice, setLastInvoice] = useState<Invoice | null>(null);
   const [openRegisterAmount, setOpenRegisterAmount] = useState("");
@@ -138,6 +139,15 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
       return;
     }
     if (invoiceType === "factura" && (!clientId || clientId === "none")) return;
+    if (invoiceType === "boleta" && calc && calc.total_cents > 70000) {
+      const docNumber = clientId && clientId !== "none"
+        ? clients.find((c) => c.id === clientId)?.document_number
+        : "00000000";
+      if (!docNumber || docNumber === "00000000") {
+        showError("Boletas mayores a S/ 700.00 deben identificar al cliente. Selecciona un cliente con DNI.");
+        return;
+      }
+    }
     for (const item of cart) {
       const currentStock = branchId === "all"
         ? item.product.stock
@@ -232,8 +242,13 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
 
   const lastInvoiceData = lastInvoiceId ? (fetchedInvoice ?? lastInvoice) : null;
 
-  const handleConfirmPayment = useCallback((method: PaymentMethod) => {
+  const handleConfirmPayment = useCallback((method: PaymentMethod, receivedCents?: number) => {
     if (!calc || !canSell || !openRegister || !activeBranch) return;
+    if (method === "cash" && receivedCents !== undefined) {
+      setLastCashReceivedCents(receivedCents);
+    } else {
+      setLastCashReceivedCents(undefined);
+    }
 
     createInvoiceMutation.mutate({ method }, {
       onSuccess: (result) => {
@@ -292,6 +307,7 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
           format: "thermal-58mm",
           branchName: activeBranch?.name,
           taxConfig: pdfTaxConfig,
+          cashReceivedCents: lastCashReceivedCents,
           action: "print",
         })
       );
@@ -306,6 +322,7 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
 
   const handleClosePayment = useCallback(() => {
     setPaymentOpen(false);
+    setLastCashReceivedCents(undefined);
     if (lastInvoiceNumber) {
       setLastInvoiceNumber(undefined);
       setLastInvoiceId(null);
