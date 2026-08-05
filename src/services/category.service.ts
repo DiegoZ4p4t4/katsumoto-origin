@@ -4,35 +4,35 @@ import type { ManagedCategoryFamily, ManagedCategoryGroup, ManagedCategory } fro
 
 function toFamily(row: Record<string, unknown>): ManagedCategoryFamily {
   return {
-    id: row.id,
-    key: row.key,
-    label: row.label,
-    icon: row.icon,
-    color: row.color,
-    activeColor: row.active_color,
-    order: row.sort_order,
+    id: String(row.id ?? ""),
+    key: String(row.key ?? ""),
+    label: String(row.label ?? ""),
+    icon: String(row.icon ?? ""),
+    color: String(row.color ?? ""),
+    activeColor: String(row.active_color ?? ""),
+    order: Number(row.sort_order ?? 0),
   };
 }
 
 function toGroup(row: Record<string, unknown>): ManagedCategoryGroup {
   return {
-    id: row.id,
-    familyId: row.family_id,
-    key: row.key,
-    label: row.label,
-    icon: row.icon,
-    color: row.color,
-    order: row.sort_order,
+    id: String(row.id ?? ""),
+    familyId: String(row.family_id ?? ""),
+    key: String(row.key ?? ""),
+    label: String(row.label ?? ""),
+    icon: String(row.icon ?? ""),
+    color: String(row.color ?? ""),
+    order: Number(row.sort_order ?? 0),
   };
 }
 
 function toCategory(row: Record<string, unknown>): ManagedCategory {
   return {
-    id: row.id,
-    groupId: row.group_id,
-    name: row.name,
-    order: row.sort_order,
-    imageUrl: row.image_url,
+    id: String(row.id ?? ""),
+    groupId: String(row.group_id ?? ""),
+    name: String(row.name ?? ""),
+    order: Number(row.sort_order ?? 0),
+    imageUrl: row.image_url == null ? null : String(row.image_url),
   };
 }
 
@@ -120,8 +120,9 @@ export const categoryService = {
   },
 
   async updateFamily(id: string, data: Partial<{ key: string; label: string; icon: string; color: string; activeColor: string; sortOrder: number }>): Promise<void> {
-    const update = buildUpdatePayload(data, ["key", "label", "icon", "color", "sortOrder"]);
+    const update = buildUpdatePayload(data, ["key", "label", "icon", "color"]);
     if (data.activeColor !== undefined) update.active_color = data.activeColor;
+    if (data.sortOrder !== undefined) update.sort_order = data.sortOrder;
     const { error } = await supabase.from("managed_category_families").update(update).eq("id", id);
     if (error) throw error;
   },
@@ -150,7 +151,8 @@ export const categoryService = {
   },
 
   async updateGroup(id: string, data: Partial<{ key: string; label: string; icon: string; color: string; sortOrder: number }>): Promise<void> {
-    const update = buildUpdatePayload(data, ["key", "label", "icon", "color", "sortOrder"]);
+    const update = buildUpdatePayload(data, ["key", "label", "icon", "color"]);
+    if (data.sortOrder !== undefined) update.sort_order = data.sortOrder;
     const { error } = await supabase.from("managed_category_groups").update(update).eq("id", id);
     if (error) throw error;
   },
@@ -177,8 +179,9 @@ export const categoryService = {
   },
 
   async updateCategory(id: string, data: Partial<{ name: string; imageUrl: string | null; sortOrder: number }>): Promise<void> {
-    const update = buildUpdatePayload(data, ["name", "sortOrder"]);
+    const update = buildUpdatePayload(data, ["name"]);
     if (data.imageUrl !== undefined) update.image_url = data.imageUrl;
+    if (data.sortOrder !== undefined) update.sort_order = data.sortOrder;
     const { error } = await supabase.from("managed_categories").update(update).eq("id", id);
     if (error) throw error;
   },

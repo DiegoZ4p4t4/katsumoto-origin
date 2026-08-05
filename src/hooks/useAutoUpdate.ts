@@ -75,12 +75,12 @@ export function useAutoUpdate(): UseAutoUpdateReturn {
 
       let totalBytes = 0;
       let downloadedBytes = 0;
-      await update.downloadAndInstall((ev: { event: string; data: Record<string, unknown> }) => {
-        if (ev.event === "Started" && ev.data.contentLength) {
+      await update.downloadAndInstall((ev: { event: string; data?: Record<string, unknown> }) => {
+        if (ev.event === "Started" && ev.data?.contentLength) {
           totalBytes = ev.data.contentLength as number;
           setProgress(5);
         } else if (ev.event === "Progress" && totalBytes > 0) {
-          downloadedBytes += (ev.data.chunkLength as number) || 0;
+          downloadedBytes += (ev.data?.chunkLength as number) || 0;
           setProgress(Math.round((downloadedBytes / totalBytes) * 100));
         } else if (ev.event === "Finished") {
           setProgress(100);

@@ -188,7 +188,7 @@ export default function Inventory() {
   }, [branchProducts, debouncedSearch, familyFilter, groupFilter, categoryFilter, machineCompatibleIds, taxFilter, tagFilter]);
 
   const marginMap = useMemo(() => {
-    const map = new Map<ReturnType<typeof getMarginRange> | null>();
+    const map = new Map<string, ReturnType<typeof getMarginRange>>();
     for (const p of filtered) {
       map.set(p.id, getMarginRange(p, priceTiers));
     }
@@ -209,7 +209,7 @@ export default function Inventory() {
     },
   }), [marginMap]);
 
-  const { sort, toggleSort, sorted } = useTableSort(filtered, {
+  const { sort, toggleSort, sorted } = useTableSort<Product, "name" | "sku" | "category" | "price" | "cost" | "stock" | "margin">(filtered, {
     comparators: productComparators,
     defaultColumn: "name",
   });

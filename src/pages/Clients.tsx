@@ -28,6 +28,7 @@ import { Plus, Loader2, AlertCircle, RefreshCw, Users, Download } from "lucide-r
 const defaultValues: ClientFormValues = {
   name: "", document_type: "RUC", document_number: "",
   phone: "", email: "", address: "", city: "",
+  department_code: "", province_code: "", district_code: "",
 };
 
 export default function Clients() {
@@ -67,7 +68,7 @@ export default function Clients() {
     invoices: (a: Customer, b: Customer) => getInvoiceCount(a.id) - getInvoiceCount(b.id),
   }), [getInvoiceCount]);
 
-  const { sort, toggleSort, sorted } = useTableSort(filtered, { comparators: clientComparators, defaultColumn: "name" });
+  const { sort, toggleSort, sorted } = useTableSort<Customer, "name" | "document_type" | "document_number" | "city" | "invoices">(filtered, { comparators: clientComparators, defaultColumn: "name" });
   const pagination = usePagination({ totalItems: sorted.length });
   const paginated = useMemo(() => sorted.slice(pagination.startIndex, pagination.endIndex), [sorted, pagination.startIndex, pagination.endIndex]);
 
@@ -161,7 +162,7 @@ export default function Clients() {
       ) : (
         <>
           <ClientFilters search={search} onSearchChange={updateSearch} docFilter={docFilter} onDocFilterChange={updateDocFilter}
-            cityFilter={cityFilter} onCityFilterChange={updateCityFilter} usedCities={usedCities} />
+            cityFilter={cityFilter} onCityFilterChange={updateCityFilter} usedCities={usedCities.filter((c): c is string => c !== null)} />
 
           <ClientTable paginated={paginated} sort={sort} toggleSort={toggleSort} filtered={filtered}
             getInvoiceCount={getInvoiceCount} onEdit={openEdit} onDelete={(id) => { setDeleteId(id); setDeleteOpen(true); }} />

@@ -6,14 +6,16 @@ export function UpdateNotification() {
   const {
     updateAvailable,
     updateInfo,
-    downloading,
+    downloadStatus,
     progress,
     error,
-    downloadAndInstall,
+    downloadUpdate,
   } = useAutoUpdate();
   const [dismissed, setDismissed] = useState(false);
 
   if (!updateAvailable || dismissed) return null;
+
+  const downloading = downloadStatus === "downloading";
 
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4">
@@ -51,7 +53,7 @@ export function UpdateNotification() {
           ) : (
             <>
               <button
-                onClick={downloadAndInstall}
+                onClick={downloadUpdate}
                 className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Actualizar

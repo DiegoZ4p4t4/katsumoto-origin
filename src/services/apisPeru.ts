@@ -45,11 +45,11 @@ async function callProxy(type: "ruc" | "dni", number: string): Promise<Record<st
 export async function queryRuc(ruc: string): Promise<ApisPeruRucResult> {
   const data = await callProxy("ruc", ruc);
   if (!data.ruc) throw new Error("RUC no encontrado en SUNAT");
-  return data;
+  return data as unknown as ApisPeruRucResult;
 }
 
 export async function queryDni(dni: string): Promise<ApisPeruDniResult> {
   const data = await callProxy("dni", dni);
   if (!data.success) throw new Error("DNI no encontrado en RENIEC");
-  return data;
+  return data as unknown as ApisPeruDniResult;
 }

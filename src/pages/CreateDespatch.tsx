@@ -112,7 +112,7 @@ export default function CreateDespatch() {
       conductor_nombre: sanitizeName(condNombre),
       conductor_licencia: condLicencia.toUpperCase().slice(0, 20),
       vehiculo_placa: vehiculoPlaca.toUpperCase().replace(/[^A-Z0-9-]/g, ""),
-      items: items.filter((i) => i.product_name.trim()),
+      items: items.filter((i) => i.product_name.trim()).map((i) => ({ ...i, unit: i.unit || "NIU" })),
     };
 
     const result = despatchFormSchema.safeParse(formValues);
@@ -122,7 +122,7 @@ export default function CreateDespatch() {
       return;
     }
 
-    const formData: DespatchFormData = { ...result.data, modalidad_traslado: "01" };
+    const formData = { ...result.data } as DespatchFormData;
 
     create(formData, {
       onSuccess: () => navigate("/admin/despatches"),

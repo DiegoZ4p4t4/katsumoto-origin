@@ -62,6 +62,7 @@ describe('invoice.service — creación de factura', () => {
         {
           invoice_type: 'factura',
           customer_id: 'customer-uuid',
+          issue_date: '2026-08-05',
           items: [{
             product_name: 'Aceite 2T',
             quantity: 2,
@@ -99,6 +100,7 @@ describe('invoice.service — creación de factura', () => {
         {
           invoice_type: 'boleta',
           customer_id: 'cf-uuid',
+          issue_date: '2026-08-05',
           items: [{ product_name: 'Producto', quantity: 1, unit_price_cents: 1000, discount_percent: 0 }],
         },
         'branch-uuid',
@@ -116,7 +118,7 @@ describe('invoice.service — creación de factura', () => {
       });
 
       await expect(invoiceService.createWithItems(
-        { invoice_type: 'factura', customer_id: 'x', items: [{ product_name: 'X', quantity: 1, unit_price_cents: 100, discount_percent: 0 }] },
+        { invoice_type: 'factura', customer_id: 'x', issue_date: '2026-08-05', items: [{ product_name: 'X', quantity: 1, unit_price_cents: 100, discount_percent: 0 }] },
         'branch-uuid', 'cash', 'register-uuid'
       )).rejects.toThrow('No autenticado');
     });
@@ -134,7 +136,7 @@ describe('invoice.service — creación de factura', () => {
         });
 
       await expect(invoiceService.createWithItems(
-        { invoice_type: 'factura', customer_id: 'x', items: [{ product_name: 'Aceite', quantity: 999, unit_price_cents: 100, discount_percent: 0 }] },
+        { invoice_type: 'factura', customer_id: 'x', issue_date: '2026-08-05', items: [{ product_name: 'Aceite', quantity: 999, unit_price_cents: 100, discount_percent: 0 }] },
         'branch-uuid', 'cash', 'register-uuid'
       )).rejects.toThrow('Stock insuficiente');
     });
