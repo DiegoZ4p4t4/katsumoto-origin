@@ -125,14 +125,14 @@ export default function CreateDespatch() {
     const formData: DespatchFormData = { ...result.data, modalidad_traslado: "01" };
 
     create(formData, {
-      onSuccess: () => navigate("/despatches"),
+      onSuccess: () => navigate("/admin/despatches"),
     });
   };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/despatches")} className="rounded-xl">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/admin/despatches")} className="rounded-xl">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <h1 className="text-2xl font-bold">Nueva Guia de Remision</h1>
@@ -354,7 +354,7 @@ export default function CreateDespatch() {
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => navigate("/despatches")} className="rounded-xl">
+          <Button type="button" variant="outline" onClick={() => navigate("/admin/despatches")} className="rounded-xl">
             Cancelar
           </Button>
           <Button type="submit" disabled={isCreating} className="rounded-xl bg-orange-600 hover:bg-orange-700">

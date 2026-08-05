@@ -415,7 +415,7 @@ export default function Inventory() {
         <TabsContent value="alerts" className="mt-6">
           <ReplenishmentAlerts
             onTransferSuggest={(productId, fromBranchId, toBranchId, quantity) => {
-              navigate("/transfers", {
+              navigate("/admin/transfers", {
                 state: { productId, fromBranchId, toBranchId, quantity },
               });
             }}

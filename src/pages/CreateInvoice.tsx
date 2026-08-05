@@ -214,7 +214,7 @@ export default function CreateInvoice() {
       queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.movements.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.branches.allStock });
-      navigate("/invoices");
+      navigate("/admin/invoices");
     },
     onError: (err) => {
       const isStockError = err.message?.includes("Stock insuficiente");
@@ -268,7 +268,7 @@ export default function CreateInvoice() {
     return (
       <div className="space-y-6 max-w-4xl">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/invoices")} className="rounded-xl">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/admin/invoices")} className="rounded-xl">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-2xl md:text-3xl font-bold">Nuevo Comprobante</h1>
@@ -295,7 +295,7 @@ export default function CreateInvoice() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/invoices")} className="rounded-xl">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/admin/invoices")} className="rounded-xl">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex items-center gap-2">
@@ -377,7 +377,7 @@ export default function CreateInvoice() {
       </Card>
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => navigate("/invoices")} className="rounded-xl">Cancelar</Button>
+        <Button variant="outline" onClick={() => navigate("/admin/invoices")} className="rounded-xl">Cancelar</Button>
         <Button onClick={handleSave} disabled={!clientId || fields.length === 0} className="rounded-xl bg-orange-600 hover:bg-orange-700">
           Emitir {INVOICE_TYPES[invoiceType]?.label}
         </Button>

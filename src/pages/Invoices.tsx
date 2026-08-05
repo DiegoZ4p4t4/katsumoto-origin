@@ -108,7 +108,7 @@ export default function Invoices() {
           <Button variant="outline" onClick={handleExportCSV} disabled={filtered.length === 0} className="rounded-xl">
             <Download className="w-4 h-4 mr-2" />Exportar CSV
           </Button>
-          <Button onClick={() => navigate("/invoices/new")} className="rounded-xl bg-orange-600 hover:bg-orange-700">
+          <Button onClick={() => navigate("/admin/invoices/new")} className="rounded-xl bg-orange-600 hover:bg-orange-700">
             <Plus className="w-4 h-4 mr-2" />Nuevo Comprobante
           </Button>
         </div>
@@ -130,7 +130,7 @@ export default function Invoices() {
           <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-lg font-medium text-muted-foreground mb-1">No hay comprobantes</p>
           <p className="text-sm text-muted-foreground mb-4">Emite tu primer comprobante para empezar a registrar ventas.</p>
-          <Button onClick={() => navigate("/invoices/new")} className="rounded-xl bg-orange-600 hover:bg-orange-700">
+          <Button onClick={() => navigate("/admin/invoices/new")} className="rounded-xl bg-orange-600 hover:bg-orange-700">
             <Plus className="w-4 h-4 mr-2" />Crear Primer Comprobante
           </Button>
         </div>

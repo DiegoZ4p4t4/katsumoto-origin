@@ -118,15 +118,15 @@ export default function POS() {
         </div>
         <div className="flex items-center gap-2">
           {taxConfigMissing && (
-            <Button variant="outline" size="sm" className="rounded-xl text-xs h-8 gap-1.5 border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20" onClick={() => navigate("/tax-configuration")}>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs h-8 gap-1.5 border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20" onClick={() => navigate("/admin/tax-configuration")}>
               <AlertTriangle className="w-3 h-3" />Config. Tributaria
             </Button>
           )}
           {isWarehouse && (
-            <Button variant="outline" size="sm" className="rounded-xl text-xs h-8" onClick={() => navigate("/transfers")}>Transferencias</Button>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs h-8" onClick={() => navigate("/admin/transfers")}>Transferencias</Button>
           )}
           {openRegister && (
-            <Button variant="outline" size="sm" className="rounded-xl text-xs h-8" onClick={() => navigate("/cash-registers")}>Ver Cajas</Button>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs h-8" onClick={() => navigate("/admin/cash-registers")}>Ver Cajas</Button>
           )}
         </div>
       </div>
