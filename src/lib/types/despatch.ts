@@ -1,4 +1,4 @@
-export type DespatchStatus = "draft" | "issued" | "accepted" | "cancelled";
+export type DespatchStatus = "draft" | "issued" | "processing" | "accepted" | "rejected" | "cancelled";
 
 export type MotivoTraslado =
   | "01" | "02" | "03" | "04" | "05" | "06" | "07"
