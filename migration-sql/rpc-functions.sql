@@ -231,7 +231,7 @@ BEGIN
         v_igv_cents := v_igv_cents + v_item_igv;
 
         IF v_item_tax_aff = 'gravado' THEN
-            v_gravada_cents := v_gravada_cents + v_item_line_total;
+            v_gravada_cents := v_gravada_cents + (v_item_line_total - v_item_igv);
         ELSIF v_item_tax_aff = 'exonerado' THEN
             v_exonerada_cents := v_exonerada_cents + v_item_line_total;
         ELSIF v_item_tax_aff = 'inafecto' THEN
@@ -241,7 +241,7 @@ BEGIN
         END IF;
     END LOOP;
 
-    v_total_cents := v_subtotal_cents + v_igv_cents;
+    v_total_cents := v_subtotal_cents;
 
     v_correlativo := get_next_correlativo(p_organization_id, v_serie);
     v_number := v_serie || '-' || LPAD(v_correlativo::TEXT, 6, '0');

@@ -69,17 +69,17 @@ export function CreateCreditNote({ invoice, open, onOpenChange, onSuccess }: Cre
   };
 
   const totals = useMemo(() => {
-    let subtotal = 0;
+    let base = 0;
     let igv = 0;
     for (const si of selectedItems) {
       if (!si.selected || si.returnQuantity <= 0) continue;
       const ratio = si.returnQuantity / si.item.quantity;
       const lineTotal = Math.round(si.item.line_total_cents * ratio);
       const igvAmount = Math.round(si.item.igv_cents * ratio);
-      subtotal += lineTotal;
+      base += lineTotal - igvAmount;
       igv += igvAmount;
     }
-    return { subtotal, igv, total: subtotal + igv };
+    return { base, igv, total: base + igv };
   }, [selectedItems]);
 
   const ncItems = useMemo(() => {
@@ -265,7 +265,7 @@ export function CreateCreditNote({ invoice, open, onOpenChange, onSuccess }: Cre
               </p>
               {totals.igv > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Subtotal: {formatCents(totals.subtotal)} + IGV: {formatCents(totals.igv)}
+                  Base: {formatCents(totals.base)} + IGV: {formatCents(totals.igv)}
                 </p>
               )}
             </div>

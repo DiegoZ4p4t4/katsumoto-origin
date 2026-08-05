@@ -36,6 +36,9 @@ coverage/
 .playwright-mcp/
 test-results/
 
+# Supabase CLI temp
+supabase/.temp/
+
 # Signing keys
 *.key
 *.key.pub
