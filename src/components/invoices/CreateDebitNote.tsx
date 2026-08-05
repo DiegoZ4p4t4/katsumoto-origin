@@ -71,17 +71,17 @@ export function CreateDebitNote({ invoice, open, onOpenChange, onSuccess }: Crea
   };
 
   const totals = useMemo(() => {
-    let subtotal = 0;
+    let base = 0;
     let igv = 0;
     for (const si of selectedItems) {
       if (!si.selected) continue;
       const ratio = si.adjustPercent / 100;
       const lineIncrease = Math.round(si.item.line_total_cents * ratio);
       const igvIncrease = Math.round(si.item.igv_cents * ratio);
-      subtotal += lineIncrease;
+      base += lineIncrease - igvIncrease;
       igv += igvIncrease;
     }
-    return { subtotal, igv, total: subtotal + igv };
+    return { base, igv, total: base + igv };
   }, [selectedItems]);
 
   const ndItems = useMemo(() => {
@@ -274,7 +274,7 @@ export function CreateDebitNote({ invoice, open, onOpenChange, onSuccess }: Crea
               </p>
               {totals.igv > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Base: {formatCents(totals.subtotal)} + IGV: {formatCents(totals.igv)}
+                  Base: {formatCents(totals.base)} + IGV: {formatCents(totals.igv)}
                 </p>
               )}
             </div>

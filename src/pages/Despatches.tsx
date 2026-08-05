@@ -33,7 +33,9 @@ import { MOTIVO_TRASLADO_LABELS } from "@/lib/types/despatch";
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   draft: { label: "Borrador", variant: "secondary" },
   issued: { label: "Emitida", variant: "outline" },
+  processing: { label: "En proceso", variant: "secondary" },
   accepted: { label: "Aceptada", variant: "default" },
+  rejected: { label: "Rechazada", variant: "destructive" },
   cancelled: { label: "Anulada", variant: "destructive" },
 };
 
@@ -105,7 +107,7 @@ export default function Despatches() {
       </p>
 
       <div className="flex gap-2 flex-wrap">
-        {["all", "issued", "accepted", "cancelled"].map((s) => (
+        {["all", "issued", "processing", "accepted", "rejected", "cancelled"].map((s) => (
           <Button
             key={s}
             variant={statusFilter === s ? "default" : "outline"}

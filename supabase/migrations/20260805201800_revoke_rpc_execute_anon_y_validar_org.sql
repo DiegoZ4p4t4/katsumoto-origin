@@ -1,44 +1,26 @@
 -- ============================================================
--- RPC Functions - Katsumoto SUNAT Billing System
--- Extraídas de la instancia Supabase viva (2026-06-10)
--- Organización: SERVICIOS GENERALES UNITED E.I.R.L. (RUC 20608183672)
+-- Seguridad: RPCs SECURITY DEFINER expuestas a roles no autorizados
+--
+-- 1. Todas las RPC de escritura tenian EXECUTE otorgado a PUBLIC y a
+--    'anon' (verificado en pg_proc.proacl). Como son SECURITY DEFINER,
+--    un atacante sin login podia invocar create_invoice_with_items,
+--    adjust_stock, transfer_stock, etc. Se revoca de PUBLIC/anon y se
+--    deja solo a 'authenticated' (y service_role por defecto).
+--
+-- 2. create_invoice_with_items / create_credit_note / adjust_stock /
+--    transfer_stock aceptaban p_created_by sin validar que el usuario
+--    pertenezca a la organizacion. Se agrega la validacion para evitar
+--    operaciones cross-tenant (SECURITY DEFINER bypasea RLS).
+--
+-- Nota: se preserva la logica original de cada funcion al 100%
+-- (return type, checks, movement_type, reference_type). Solo se
+-- agrega la validacion de p_created_by y, en las funciones que usaban
+-- search_path='public', se endurece a '' cualificando con public.*
 -- ============================================================
 
--- ⚠️ IMPORTANTE: Estas RPCs usan SET search_path TO '' por seguridad.
--- Todas las referencias a tablas deben ser schema-qualified (public.*)
-
--- ============================================================
--- 1. get_next_correlativo (FIXED — FOR UPDATE sin MAX aggegate)
--- ============================================================
-CREATE OR REPLACE FUNCTION public.get_next_correlativo(
-    p_organization_id uuid,
-    p_serie text
-)
-RETURNS integer
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $$
-DECLARE
-    v_next INTEGER;
-BEGIN
-    SELECT correlativo INTO v_next
-    FROM public.invoices
-    WHERE organization_id = p_organization_id AND serie = p_serie
-    ORDER BY correlativo DESC
-    LIMIT 1
-    FOR UPDATE;
-
-    v_next := COALESCE(v_next, 0) + 1;
-    RETURN v_next;
-END;
-$$;
-
--- ============================================================
--- 2. create_invoice_with_items (LA MÁS CRÍTICA)
--- Crea factura/boleta con validación de stock, deducción
--- automática y registro de movimientos
--- ============================================================
+-- ------------------------------------------------------------
+-- create_invoice_with_items: validar que el creador sea de la org
+-- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.create_invoice_with_items(
     p_organization_id uuid,
     p_serie text,
@@ -64,14 +46,13 @@ RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO ''
-AS $$
+AS $function$
 DECLARE
     v_invoice_id UUID;
-    v_item JSONB;
     v_number TEXT;
+    v_item JSONB;
     v_product_org_id UUID;
 BEGIN
-    -- Validar que el creador pertenezca a la organizacion
     IF p_created_by IS NULL OR NOT EXISTS (
         SELECT 1 FROM public.profiles
         WHERE id = p_created_by AND organization_id = p_organization_id
@@ -79,7 +60,6 @@ BEGIN
         RAISE EXCEPTION 'Usuario no pertenece a la organizacion';
     END IF;
 
-    -- Validar sucursal
     IF NOT EXISTS (
         SELECT 1 FROM public.branches
         WHERE id = p_branch_id AND organization_id = p_organization_id AND is_active = true
@@ -89,7 +69,6 @@ BEGIN
 
     v_number := p_serie || '-' || LPAD(p_correlativo::text, 6, '0');
 
-    -- Insertar cabecera
     INSERT INTO public.invoices (
         organization_id, number, serie, correlativo, invoice_type,
         customer_id, branch_id, status,
@@ -98,13 +77,12 @@ BEGIN
         payment_method, register_id, notes, created_by
     ) VALUES (
         p_organization_id, v_number, p_serie, p_correlativo, p_invoice_type,
-        p_customer_id, p_branch_id, 'issued',
+        p_customer_id::uuid, p_branch_id, 'issued',
         p_subtotal_cents, p_gravada_cents, p_exonerada_cents, p_inafecta_cents,
         p_exportacion_cents, p_igv_rate, p_igv_cents, p_total_cents,
         p_payment_method, p_register_id, p_notes, p_created_by
     ) RETURNING id INTO v_invoice_id;
 
-    -- Insertar items + deducir stock
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
     LOOP
         INSERT INTO public.invoice_items (
@@ -125,7 +103,6 @@ BEGIN
             COALESCE((v_item->>'igv_cents')::BIGINT, 0)
         );
 
-        -- Deducción de stock
         IF (v_item->>'product_id') IS NOT NULL THEN
             SELECT organization_id INTO v_product_org_id
             FROM public.products
@@ -167,12 +144,13 @@ BEGIN
 
     RETURN v_invoice_id;
 END;
-$$;
+$function$;
 
--- ============================================================
--- 3. create_credit_note
--- Crea nota de crédito con devolución de stock
--- ============================================================
+-- ------------------------------------------------------------
+-- create_credit_note: validar que el creador sea de la org
+-- (logica de IGV ya corregida en migracion
+--  20260805200928_fix_credit_note_igv_double_count)
+-- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.create_credit_note(
     p_organization_id uuid,
     p_parent_invoice_id uuid,
@@ -186,8 +164,8 @@ CREATE OR REPLACE FUNCTION public.create_credit_note(
 RETURNS TABLE(invoice_id uuid, serie text, correlativo integer)
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
+SET search_path TO ''
+AS $function$
 DECLARE
     v_invoice_id UUID;
     v_parent RECORD;
@@ -206,7 +184,6 @@ DECLARE
     v_item_igv BIGINT;
     v_item_tax_aff TEXT;
 BEGIN
-    -- Validar que el creador pertenezca a la organizacion
     IF p_created_by IS NULL OR NOT EXISTS (
         SELECT 1 FROM public.profiles
         WHERE id = p_created_by AND organization_id = p_organization_id
@@ -215,7 +192,7 @@ BEGIN
     END IF;
 
     SELECT * INTO v_parent
-    FROM invoices
+    FROM public.invoices
     WHERE id = p_parent_invoice_id
       AND organization_id = p_organization_id;
 
@@ -259,10 +236,10 @@ BEGIN
 
     v_total_cents := v_subtotal_cents;
 
-    v_correlativo := get_next_correlativo(p_organization_id, v_serie);
+    v_correlativo := public.get_next_correlativo(p_organization_id, v_serie);
     v_number := v_serie || '-' || LPAD(v_correlativo::TEXT, 6, '0');
 
-    INSERT INTO invoices (
+    INSERT INTO public.invoices (
         organization_id, number, serie, correlativo, invoice_type,
         customer_id, branch_id, status,
         subtotal_cents, gravada_cents, exonerada_cents, inafecta_cents,
@@ -280,7 +257,7 @@ BEGIN
 
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
     LOOP
-        INSERT INTO invoice_items (
+        INSERT INTO public.invoice_items (
             invoice_id, product_id, product_name, product_sku,
             quantity, unit_price_cents, discount_percent,
             discount_cents, line_total_cents, tax_affectation, igv_cents
@@ -298,14 +275,13 @@ BEGIN
             COALESCE((v_item->>'igv_cents')::BIGINT, 0)
         );
 
-        -- Devolver stock al inventario
         IF (v_item->>'product_id') IS NOT NULL THEN
-            INSERT INTO branch_stock (branch_id, product_id, stock, min_stock)
+            INSERT INTO public.branch_stock (branch_id, product_id, stock, min_stock)
             VALUES (p_branch_id, (v_item->>'product_id')::UUID, (v_item->>'quantity')::INTEGER, 0)
             ON CONFLICT (branch_id, product_id)
-            DO UPDATE SET stock = branch_stock.stock + (v_item->>'quantity')::INTEGER;
+            DO UPDATE SET stock = public.branch_stock.stock + (v_item->>'quantity')::INTEGER;
 
-            INSERT INTO stock_movements (
+            INSERT INTO public.stock_movements (
                 organization_id, product_id, branch_id, movement_type,
                 quantity, reference_type, reference_id, notes, created_by
             ) VALUES (
@@ -322,7 +298,7 @@ BEGIN
         END IF;
     END LOOP;
 
-    INSERT INTO audit_log (organization_id, user_id, action, entity, entity_id, new_value)
+    INSERT INTO public.audit_log (organization_id, user_id, action, entity, entity_id, new_value)
     VALUES (
         p_organization_id, p_created_by, 'credit_note.create', 'invoice', v_invoice_id::TEXT,
         jsonb_build_object(
@@ -336,172 +312,11 @@ BEGIN
 
     RETURN QUERY SELECT v_invoice_id, v_serie, v_correlativo;
 END;
-$$;
+$function$;
 
--- ============================================================
--- 4. insert_audit_entry
--- Registro de auditoría genérico con resolución de user/org
--- ============================================================
-CREATE OR REPLACE FUNCTION public.insert_audit_entry(
-    p_action text,
-    p_entity text,
-    p_entity_id text DEFAULT NULL::text,
-    p_old_value jsonb DEFAULT NULL::jsonb,
-    p_new_value jsonb DEFAULT NULL::jsonb
-)
-RETURNS uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $$
-DECLARE
-    v_org_id UUID;
-    v_user_id UUID;
-    v_id UUID;
-BEGIN
-    v_user_id := auth.uid();
-
-    SELECT p.organization_id INTO v_org_id
-    FROM public.profiles p
-    WHERE p.id = v_user_id;
-
-    IF v_org_id IS NULL THEN
-        RAISE EXCEPTION 'No se pudo determinar la organización del usuario';
-    END IF;
-
-    INSERT INTO public.audit_log (organization_id, user_id, action, entity, entity_id, old_value, new_value)
-    VALUES (v_org_id, v_user_id, p_action, p_entity, p_entity_id, p_old_value, p_new_value)
-    RETURNING id INTO v_id;
-
-    RETURN v_id;
-END;
-$$;
-
--- ============================================================
--- 5. fulfill_store_order
--- Convierte pedido de tienda online en factura/boleta
--- ============================================================
-CREATE OR REPLACE FUNCTION public.fulfill_store_order(p_order_id uuid)
-RETURNS uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $$
-DECLARE
-    v_order RECORD;
-    v_org_id UUID;
-    v_user_id UUID;
-    v_warehouse_branch_id UUID;
-    v_customer_id UUID;
-    v_invoice_type TEXT;
-    v_serie TEXT;
-    v_default_serie TEXT;
-    v_correlativo INTEGER;
-    v_invoice_id UUID;
-    v_existing_customer_id UUID;
-BEGIN
-    v_user_id := auth.uid();
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'No autenticado';
-    END IF;
-
-    SELECT * INTO v_order
-    FROM public.store_orders
-    WHERE id = p_order_id;
-
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Pedido no encontrado';
-    END IF;
-
-    IF v_order.status != 'processing' THEN
-        RAISE EXCEPTION 'El pedido debe estar en procesamiento';
-    END IF;
-
-    SELECT organization_id INTO v_org_id FROM public.profiles WHERE id = v_user_id;
-    IF v_org_id IS NULL OR v_org_id != v_order.organization_id THEN
-        RAISE EXCEPTION 'Sin permiso para este pedido';
-    END IF;
-
-    SELECT id INTO v_warehouse_branch_id
-    FROM public.branches
-    WHERE organization_id = v_org_id
-      AND type = 'warehouse'
-      AND is_active = true
-    LIMIT 1;
-
-    IF v_warehouse_branch_id IS NULL THEN
-        RAISE EXCEPTION 'No se encontro la sede almacen';
-    END IF;
-
-    SELECT id INTO v_existing_customer_id
-    FROM public.customers
-    WHERE organization_id = v_org_id
-      AND document_number = v_order.customer_document_number
-    LIMIT 1;
-
-    IF v_existing_customer_id IS NOT NULL THEN
-        v_customer_id := v_existing_customer_id;
-    ELSE
-        INSERT INTO public.customers (organization_id, name, document_type, document_number, phone, email)
-        VALUES (v_org_id, v_order.customer_name, v_order.customer_document_type,
-                v_order.customer_document_number, v_order.customer_phone, v_order.customer_email)
-        RETURNING id INTO v_customer_id;
-    END IF;
-
-    v_invoice_type := CASE WHEN v_order.customer_document_type = 'RUC' THEN 'factura' ELSE 'boleta' END;
-    v_default_serie := CASE WHEN v_invoice_type = 'factura' THEN 'F001' ELSE 'B001' END;
-
-    SELECT COALESCE(invoice_serie_prefix, v_default_serie) INTO v_serie
-    FROM public.branches WHERE id = v_order.branch_id;
-
-    v_correlativo := public.get_next_correlativo(v_org_id, v_serie);
-
-    v_invoice_id := public.create_invoice_with_items(
-        p_organization_id := v_org_id,
-        p_serie := v_serie,
-        p_correlativo := v_correlativo,
-        p_invoice_type := v_invoice_type,
-        p_customer_id := v_customer_id,
-        p_branch_id := v_warehouse_branch_id,
-        p_subtotal_cents := v_order.subtotal_cents,
-        p_gravada_cents := v_order.gravada_cents,
-        p_exonerada_cents := v_order.exonerada_cents,
-        p_inafecta_cents := v_order.inafecta_cents,
-        p_exportacion_cents := 0,
-        p_igv_rate := 0.18,
-        p_igv_cents := v_order.igv_cents,
-        p_total_cents := v_order.total_cents,
-        p_payment_method := 'online',
-        p_register_id := NULL,
-        p_notes := 'Pedido web ' || v_order.order_number,
-        p_created_by := v_user_id,
-        p_items := (SELECT COALESCE(json_agg(json_build_object(
-            'product_id', product_id,
-            'product_name', product_name,
-            'product_sku', product_sku,
-            'quantity', quantity,
-            'unit_price_cents', unit_price_cents,
-            'discount_percent', 0,
-            'discount_cents', 0,
-            'line_total_cents', line_total_cents,
-            'tax_affectation', COALESCE(tax_affectation, 'gravado'),
-            'igv_cents', igv_cents
-        )), '[]'::json) FROM public.store_order_items WHERE order_id = p_order_id)
-    );
-
-    UPDATE public.store_orders
-    SET status = 'completed'
-    WHERE id = p_order_id
-      AND status = 'processing';
-
-    RETURN v_invoice_id;
-END;
-$$;
-
--- ============================================================
--- 6. adjust_stock
--- Ajuste manual de stock (entrada, salida, devolución, ajuste)
--- ============================================================
+-- ------------------------------------------------------------
+-- adjust_stock: validar creador de la org (logica original intacta)
+-- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.adjust_stock(
     p_organization_id uuid,
     p_product_id uuid,
@@ -514,11 +329,11 @@ CREATE OR REPLACE FUNCTION public.adjust_stock(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path TO ''
 AS $$
 DECLARE
     v_movement_id UUID;
 BEGIN
-    -- Validar que el creador pertenezca a la organizacion
     IF p_created_by IS NULL OR NOT EXISTS (
         SELECT 1 FROM public.profiles
         WHERE id = p_created_by AND organization_id = p_organization_id
@@ -548,7 +363,7 @@ BEGIN
         INSERT INTO public.branch_stock (branch_id, product_id, stock, min_stock)
         VALUES (p_branch_id, p_product_id, p_quantity, 0)
         ON CONFLICT (branch_id, product_id)
-        DO UPDATE SET stock = branch_stock.stock + p_quantity;
+        DO UPDATE SET stock = public.branch_stock.stock + p_quantity;
     ELSIF p_movement_type = 'out' THEN
         UPDATE public.branch_stock
         SET stock = stock - p_quantity
@@ -561,7 +376,7 @@ BEGIN
         INSERT INTO public.branch_stock (branch_id, product_id, stock, min_stock)
         VALUES (p_branch_id, p_product_id, p_quantity, 0)
         ON CONFLICT (branch_id, product_id)
-        DO UPDATE SET stock = branch_stock.stock + p_quantity;
+        DO UPDATE SET stock = public.branch_stock.stock + p_quantity;
     END IF;
 
     INSERT INTO public.stock_movements (
@@ -576,10 +391,9 @@ BEGIN
 END;
 $$;
 
--- ============================================================
--- 7. transfer_stock
--- Transferencia entre sucursales
--- ============================================================
+-- ------------------------------------------------------------
+-- transfer_stock: validar creador de la org (logica original intacta)
+-- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.transfer_stock(
     p_organization_id uuid,
     p_product_id uuid,
@@ -597,7 +411,6 @@ AS $$
 DECLARE
     v_movement_id UUID;
 BEGIN
-    -- Validar que el creador pertenezca a la organizacion
     IF p_created_by IS NULL OR NOT EXISTS (
         SELECT 1 FROM public.profiles
         WHERE id = p_created_by AND organization_id = p_organization_id
@@ -647,7 +460,7 @@ BEGIN
     INSERT INTO public.branch_stock (branch_id, product_id, stock, min_stock)
     VALUES (p_to_branch_id, p_product_id, p_quantity, 0)
     ON CONFLICT (branch_id, product_id)
-    DO UPDATE SET stock = branch_stock.stock + p_quantity;
+    DO UPDATE SET stock = public.branch_stock.stock + p_quantity;
 
     INSERT INTO public.stock_movements (
         organization_id, product_id, branch_id, movement_type,
@@ -669,34 +482,31 @@ BEGIN
 END;
 $$;
 
--- ============================================================
--- 8. get_next_register_number
--- Obtiene el siguiente número de caja registradora
--- ============================================================
-CREATE OR REPLACE FUNCTION public.get_next_register_number(p_branch_id uuid)
-RETURNS integer
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $$
+-- ------------------------------------------------------------
+-- Revocar EXECUTE a PUBLIC/anon y otorgar a authenticated
+-- (se ejecuta al final para que aplique a las versiones finales)
+-- ------------------------------------------------------------
+DO $$
 DECLARE
-    next_num INTEGER;
-    lock_id UUID;
+    f record;
 BEGIN
-    SELECT id INTO lock_id
-    FROM public.cash_registers
-    WHERE branch_id = p_branch_id
-    ORDER BY number DESC
-    LIMIT 1
-    FOR UPDATE;
-
-    SELECT COALESCE(MAX(number), 0) + 1 INTO next_num
-    FROM public.cash_registers
-    WHERE branch_id = p_branch_id;
-
-    RETURN next_num;
-END;
-$$;
-
-ALTER TABLE public.cash_registers
-    ADD CONSTRAINT cash_registers_org_branch_number_key UNIQUE (organization_id, branch_id, number);
+    FOR f IN
+        SELECT p.oid::regprocedure AS sig
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public'
+          AND p.proname IN (
+            'create_invoice_with_items',
+            'create_credit_note',
+            'adjust_stock',
+            'transfer_stock',
+            'fulfill_store_order',
+            'get_next_correlativo',
+            'get_next_register_number',
+            'insert_audit_entry'
+          )
+    LOOP
+        EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC, anon', f.sig);
+        EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated', f.sig);
+    END LOOP;
+END $$;
