@@ -649,12 +649,22 @@ SET search_path TO ''
 AS $$
 DECLARE
     next_num INTEGER;
+    lock_id UUID;
 BEGIN
-    SELECT COALESCE(MAX(number), 0) + 1 INTO next_num
+    SELECT id INTO lock_id
     FROM public.cash_registers
     WHERE branch_id = p_branch_id
+    ORDER BY number DESC
+    LIMIT 1
     FOR UPDATE;
+
+    SELECT COALESCE(MAX(number), 0) + 1 INTO next_num
+    FROM public.cash_registers
+    WHERE branch_id = p_branch_id;
 
     RETURN next_num;
 END;
 $$;
+
+ALTER TABLE public.cash_registers
+    ADD CONSTRAINT cash_registers_org_branch_number_key UNIQUE (organization_id, branch_id, number);
