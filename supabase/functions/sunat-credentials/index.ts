@@ -75,7 +75,15 @@ async function verifyToken(token: string): Promise<string | null> {
   }
 }
 
-async function verifyCertificateInStorage(supabase: ReturnType<typeof createClient>, certPath: string | null): Promise<boolean> {
+type StorageClient = {
+  storage: {
+    from: (bucket: string) => {
+      list: (path: string) => Promise<{ data: Array<{ name: string }> | null; error: { message: string } | null }>;
+    };
+  };
+};
+
+async function verifyCertificateInStorage(supabase: StorageClient, certPath: string | null): Promise<boolean> {
   if (!certPath) return false;
   const lastSlash = certPath.lastIndexOf("/");
   const dir = certPath.substring(0, lastSlash);
@@ -134,16 +142,21 @@ Deno.serve(async (req: Request) => {
     if (!data) return json(null, 200, req);
 
     const certExists = await verifyCertificateInStorage(supabase, data.certificado_path);
-    const { clave_sol, certificado_password, ...safeConfig } = data;
+    const { clave_sol, certificado_password, gre_client_id, gre_client_secret, ...safeConfig } = data;
     return json({
       ...safeConfig,
       has_clave_sol: !!clave_sol,
       has_certificado_password: !!certificado_password,
+      has_gre_credentials: !!gre_client_id && !!gre_client_secret,
       certificado_exists_in_storage: certExists,
     }, 200, req);
   }
 
   if (action === "save") {
+    if (profile.role !== "owner" && profile.role !== "admin") {
+      return errorRes("Solo administradores pueden modificar la configuración SUNAT", 403, req);
+    }
+
     const formData = body.formData as Record<string, unknown>;
     if (!formData) return errorRes("formData is required", 400, req);
 

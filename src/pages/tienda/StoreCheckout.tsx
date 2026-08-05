@@ -142,22 +142,13 @@ export default function StoreCheckout() {
         shippingDepartmentCode: shippingDept,
         shippingProvinceCode: shippingProv,
         shippingDistrictCode: shippingDist,
-        subtotalCents: calc.subtotal_cents,
-        gravadaCents: calc.gravada_cents,
-        exoneradaCents: calc.exonerada_cents,
-        inafectaCents: calc.inafecta_cents,
-        igvCents: calc.igv_cents,
-        totalCents: calc.total_cents,
         notes: sanitizeNotes(form.notes) || undefined,
         items: calc.items.map((item) => ({
           productId: item.product_id || "",
           productName: sanitizeName(item.product_name),
           productSku: items.find((ci) => ci.product.id === item.product_id)?.product.sku || "",
           quantity: item.quantity,
-          unitPriceCents: item.unit_price_cents,
-          lineTotalCents: item.line_total_cents,
           taxAffectation: item.tax_affectation,
-          igvCents: item.igv_cents,
         })),
       });
       setOrderNumber(number);
