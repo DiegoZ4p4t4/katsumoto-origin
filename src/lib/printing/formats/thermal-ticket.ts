@@ -69,6 +69,7 @@ function estimateHeight(invoice: Invoice, sellerInfo: SellerInfo, options?: Prin
   const addrParts = [sellerInfo.direccion, sellerInfo.distrito, sellerInfo.provincia, sellerInfo.departamento].filter(Boolean);
   if (addrParts.length > 0) h += Math.ceil(addrParts.join(", ").length / 28) * 3;
   h += sellerInfo.phone ? 3 : 0;
+  h += sellerInfo.email ? 3 : 0;
   h += 9; // separator + doc type + number
   h += options?.branchName ? 3 : 0;
   h += 10; // date+time + separator
@@ -85,8 +86,10 @@ function estimateHeight(invoice: Invoice, sellerInfo: SellerInfo, options?: Prin
   if (invoice.exonerada_cents > 0) h += 3.5;
   if (invoice.inafecta_cents > 0) h += 3.5;
   h += 12; // IGV + line + total
+  h += 4;  // moneda
   h += 10; // SON line
   h += invoice.payment_method ? 4 : 0;
+  if (invoice.payment_method === "cash" && options?.cashReceivedCents !== undefined) h += 8;
   h += invoice.notes ? 4 : 0;
   if (options?.taxConfig && invoice.exonerada_cents > 0) h += 12;
   if (invoice.sunat_hash) h += 38;
@@ -178,6 +181,13 @@ export async function generateThermalTicket(
     doc.setFont(FONT, "normal");
     doc.setTextColor(80, 80, 80);
     ctext(`Tel: ${sellerInfo.phone}`, y, 5);
+    y += 4;
+  }
+
+  if (sellerInfo.email) {
+    doc.setFont(FONT, "normal");
+    doc.setTextColor(80, 80, 80);
+    ctext(`Email: ${sellerInfo.email}`, y, 5);
     y += 4;
   }
 
@@ -354,6 +364,10 @@ export async function generateThermalTicket(
   rtext(formatCents(invoice.igv_cents || 0), y, 5.5);
   y += 2;
 
+  doc.setTextColor(60, 60, 60);
+  ltext("Moneda: SOLES (PEN)", y, 5.5);
+  y += 2;
+
   sep(y); y += 5;
 
   // ═══════════════════════════════════════════
@@ -390,6 +404,19 @@ export async function generateThermalTicket(
     doc.setTextColor(60, 60, 60);
     ltext(`Pago: ${methodLabel}`, y, 5.5);
     y += 4;
+  }
+
+  if (invoice.payment_method === "cash" && options?.cashReceivedCents !== undefined) {
+    doc.setFont(FONT, "normal");
+    doc.setTextColor(0, 0, 0);
+    ltext(`Recibido: ${formatCents(options.cashReceivedCents)}`, y, 5.5);
+    y += 4;
+    const change = options.cashReceivedCents - (invoice.total_cents || 0);
+    if (change > 0) {
+      doc.setTextColor(60, 60, 60);
+      ltext(`Vuelto: ${formatCents(change)}`, y, 5.5);
+      y += 4;
+    }
   }
 
   if (invoice.notes) {

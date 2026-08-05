@@ -16,6 +16,7 @@ export interface PrintOptions {
   format?: DocumentFormat;
   branchName?: string;
   taxConfig?: PdfTaxConfig;
+  cashReceivedCents?: number;
   action?: PrintAction;
 }
 

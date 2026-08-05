@@ -237,6 +237,9 @@ export function buildTextReceipt(
   if (sellerInfo.phone) {
     lines.push(centerLine(`Tel: ${sellerInfo.phone}`, w));
   }
+  if (sellerInfo.email) {
+    lines.push(centerLine(`Email: ${sellerInfo.email}`, w));
+  }
   dsep();
 
   // Document type + number
@@ -310,6 +313,7 @@ export function buildTextReceipt(
   }
 
   lines.push(twoColumnLine(`IGV (${(IGV_RATE * 100).toFixed(0)}%):`, formatCentsShort(invoice.igv_cents), w));
+  lines.push(twoColumnLine("Moneda:", "SOLES (PEN)", w));
 
   dsep();
 
@@ -333,11 +337,11 @@ export function buildTextReceipt(
   }
 
   // Cash change
-  if (options.cashReceivedCents !== undefined && options.cashReceivedCents >= invoice.total_cents) {
+  if (options.cashReceivedCents !== undefined && invoice.payment_method === "cash") {
+    lines.push(twoColumnLine("Recibido:", formatCentsShort(options.cashReceivedCents), w));
     const change = options.cashReceivedCents - invoice.total_cents;
     if (change > 0) {
-      lines.push(twoColumnLine("Recibido:", formatCentsShort(options.cashReceivedCents), w));
-      lines.push(twoColumnLine("Cambio:", formatCentsShort(change), w));
+      lines.push(twoColumnLine("Vuelto:", formatCentsShort(change), w));
     }
   }
 
@@ -452,6 +456,9 @@ export function buildEscposReceipt(
     if (sellerInfo.phone) {
       builder.line(`Tel: ${sellerInfo.phone}`);
     }
+    if (sellerInfo.email) {
+      builder.line(`Email: ${sellerInfo.email}`);
+    }
 
     builder.line(separator("=", w));
 
@@ -527,6 +534,7 @@ export function buildEscposReceipt(
     }
 
     builder.line(twoColumnLine(`IGV (${(IGV_RATE * 100).toFixed(0)}%):`, formatCentsShort(invoice.igv_cents), w));
+    builder.line(twoColumnLine("Moneda:", "SOLES (PEN)", w));
 
     builder.line(separator("=", w));
 
@@ -553,12 +561,11 @@ export function buildEscposReceipt(
     }
 
     // Cash change
-    if (options.cashReceivedCents !== undefined && options.cashReceivedCents >= invoice.total_cents) {
+    if (options.cashReceivedCents !== undefined && invoice.payment_method === "cash") {
+      builder.line(twoColumnLine("Recibido:", formatCentsShort(options.cashReceivedCents), w));
       const change = options.cashReceivedCents - invoice.total_cents;
       if (change > 0) {
-        builder
-          .line(twoColumnLine("Recibido:", formatCentsShort(options.cashReceivedCents), w))
-          .line(twoColumnLine("Cambio:", formatCentsShort(change), w));
+        builder.line(twoColumnLine("Vuelto:", formatCentsShort(change), w));
       }
     }
 
@@ -581,9 +588,10 @@ export function buildEscposReceipt(
       // QR Code native ESC/POS
       const qrData = buildQrData(invoice, sellerInfo);
       const qrSize = options.paperWidth === 80 ? 6 : 4;
+      builder.align("center").newline();
       builder.qrCode(qrData, qrSize, "M");
 
-      builder.newline().align("center");
+      builder.newline().newline();
       builder.line("Verifique su comprobante en:");
       builder.line(SUNAT_VERIFY_URL);
     } else {
