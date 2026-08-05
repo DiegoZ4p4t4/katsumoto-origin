@@ -57,11 +57,11 @@ function drawEan13Barcode(
   doc.text(code.slice(1, 7), x + modW * 4, y + height + 3, {
     baseline: "top",
     charSpace: "auto",
-  } as Parameters<typeof doc.text>[3]);
+  } as unknown as Parameters<typeof doc.text>[3]);
   doc.text(code.slice(7, 13), x + modW * 50, y + height + 3, {
     baseline: "top",
     charSpace: "auto",
-  } as Parameters<typeof doc.text>[3]);
+  } as unknown as Parameters<typeof doc.text>[3]);
 }
 
 function drawSingleLabel(

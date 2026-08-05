@@ -28,7 +28,7 @@ interface CategoryTreeFilterProps {
 interface FamilyOption {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: LucideIcon | null;
   color: string;
   activeColor: string;
 }

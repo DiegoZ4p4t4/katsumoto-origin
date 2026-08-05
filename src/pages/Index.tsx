@@ -231,7 +231,7 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
-            <Card className="rounded-2xl shadow-sm border-blue-200 dark:border-blue-800 cursor-pointer hover:border-blue-400 transition-colors" onClick={() => navigate("/orders")}>
+            <Card className="rounded-2xl shadow-sm border-blue-200 dark:border-blue-800 cursor-pointer hover:border-blue-400 transition-colors" onClick={() => navigate("/admin/orders")}>
               <CardContent className="p-3 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
@@ -241,7 +241,7 @@ export default function Dashboard() {
                 <p className="text-[9px] text-muted-foreground">pendientes</p>
               </CardContent>
             </Card>
-            <Card className="rounded-2xl shadow-sm border-emerald-200 dark:border-emerald-800 cursor-pointer hover:border-emerald-400 transition-colors" onClick={() => navigate("/cash-registers")}>
+            <Card className="rounded-2xl shadow-sm border-emerald-200 dark:border-emerald-800 cursor-pointer hover:border-emerald-400 transition-colors" onClick={() => navigate("/admin/cash-registers")}>
               <CardContent className="p-3 text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Wallet className="w-3.5 h-3.5 text-emerald-600" />
@@ -258,13 +258,13 @@ export default function Dashboard() {
               <CardTitle className="text-base font-semibold">Acciones Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 justify-start h-11" onClick={() => navigate("/pos")}>
+              <Button className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 justify-start h-11" onClick={() => navigate("/admin/pos")}>
                 <ShoppingCart className="w-4 h-4 mr-2" />Punto de Venta
               </Button>
-              <Button variant="outline" className="w-full rounded-xl justify-start h-11" onClick={() => navigate("/invoices/new")}>
+              <Button variant="outline" className="w-full rounded-xl justify-start h-11" onClick={() => navigate("/admin/invoices/new")}>
                 <FileText className="w-4 h-4 mr-2" />Nuevo Comprobante
               </Button>
-              <Button variant="outline" className="w-full rounded-xl justify-start h-11" onClick={() => navigate("/inventory")}>
+              <Button variant="outline" className="w-full rounded-xl justify-start h-11" onClick={() => navigate("/admin/inventory")}>
                 <Package className="w-4 h-4 mr-2" />Gestionar Inventario
               </Button>
             </CardContent>
@@ -332,7 +332,7 @@ export default function Dashboard() {
                     <p className="text-[9px] text-muted-foreground">Rechazados</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="w-full rounded-xl text-xs h-7" onClick={() => navigate("/sunat-documents")}>
+                <Button variant="ghost" size="sm" className="w-full rounded-xl text-xs h-7" onClick={() => navigate("/admin/sunat-documents")}>
                   Panel completo <ArrowUpRight className="w-3 h-3 ml-1" />
                 </Button>
               </CardContent>
@@ -370,7 +370,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">Comprobantes Recientes</CardTitle>
-              <Button variant="ghost" size="sm" className="rounded-xl text-xs" onClick={() => navigate("/invoices")}>
+              <Button variant="ghost" size="sm" className="rounded-xl text-xs" onClick={() => navigate("/admin/invoices")}>
                 Ver todos <ArrowUpRight className="w-3 h-3 ml-1" />
               </Button>
             </div>
@@ -387,7 +387,7 @@ export default function Dashboard() {
                   const st = statusMap[invoice.status];
                   const StatusIcon = st?.icon || Clock;
                   return (
-                    <div key={invoice.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/invoices")}>
+                    <div key={invoice.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/admin/invoices")}>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
                           <FileText className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -453,7 +453,7 @@ export default function Dashboard() {
             </div>
           )}
           {lowStockProducts.length > 6 && (
-            <Button variant="ghost" size="sm" className="w-full rounded-xl text-xs mt-3" onClick={() => navigate("/inventory")}>
+            <Button variant="ghost" size="sm" className="w-full rounded-xl text-xs mt-3" onClick={() => navigate("/admin/inventory")}>
               Ver todos ({lowStockProducts.length}) <ArrowUpRight className="w-3 h-3 ml-1" />
             </Button>
           )}

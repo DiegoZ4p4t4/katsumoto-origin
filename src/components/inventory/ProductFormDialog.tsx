@@ -425,7 +425,7 @@ export function ProductFormDialog({
               <PriceTiersEditor
                 tiers={formPriceTiers}
                 onChange={(tiers) => setValue("priceTiers", tiers)}
-                retailPrice={formPriceSoles}
+                basePriceSoles={formPriceSoles}
                 costSoles={formCostSoles}
               />
             </div>

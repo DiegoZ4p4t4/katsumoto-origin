@@ -28,7 +28,7 @@ function loadStoredCart(): StoredItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((i: unknown) =>
+    return parsed.filter((i: unknown): i is StoredItem =>
       typeof i === "object" && i !== null && "productId" in i && "quantity" in i
     );
   } catch { return []; }

@@ -124,12 +124,12 @@ export const registerService = {
       .eq("cash_registers.organization_id", orgId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return (data || []).map((t: Record<string, unknown> & { invoices?: { number?: string } }) => {
-      const { cash_registers: _, invoices, ...rest } = t;
+    return (data || []).map((t) => {
+      const { cash_registers: _, invoices, ...rest } = t as Record<string, unknown> & { invoices?: { number?: string } };
       return {
         ...rest,
         invoice_number: invoices?.number || undefined,
-      };
+      } as unknown as RegisterTransaction;
     });
   },
 

@@ -32,6 +32,40 @@ export default function MachineModels() {
   const [editingMachine, setEditingMachine] = useState<MachineModel | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const filtered = useMemo(() => {
+    return machineModels.filter((m) => {
+      const q = debouncedSearch.toLowerCase();
+      const matchSearch = m.name.toLowerCase().includes(q) || m.brand.toLowerCase().includes(q) || m.model.toLowerCase().includes(q);
+      const matchCategory = categoryFilter === "all" || m.category === categoryFilter;
+      const matchBrand = brandFilter === "all" || m.brand === brandFilter;
+      return matchSearch && matchCategory && matchBrand;
+    });
+  }, [machineModels, debouncedSearch, categoryFilter, brandFilter]);
+
+  const machineComparators = useMemo(() => ({
+    name: (a: MachineModel, b: MachineModel) => a.name.localeCompare(b.name),
+    brand: (a: MachineModel, b: MachineModel) => a.brand.localeCompare(b.brand),
+    model: (a: MachineModel, b: MachineModel) => a.model.localeCompare(b.model),
+    category: (a: MachineModel, b: MachineModel) => a.category.localeCompare(b.category),
+    year: (a: MachineModel, b: MachineModel) => (a.year || 0) - (b.year || 0),
+  }), []);
+
+  const { sort, toggleSort, sorted } = useTableSort<MachineModel, "name" | "brand" | "model" | "category" | "year">(filtered, {
+    comparators: machineComparators,
+    defaultColumn: "name",
+  });
+
+  const pagination = usePagination({ totalItems: sorted.length });
+  const paginated = useMemo(() => {
+    return sorted.slice(pagination.startIndex, pagination.endIndex);
+  }, [sorted, pagination.startIndex, pagination.endIndex]);
+
+  const { totalModels, modelsWithProducts, totalCompatibilities } = useMemo(() => ({
+    totalModels: filtered.length,
+    modelsWithProducts: filtered.filter(m => getProductCount(m.id) > 0).length,
+    totalCompatibilities: filtered.reduce((sum, m) => sum + getProductCount(m.id), 0),
+  }), [filtered, getProductCount]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -51,34 +85,6 @@ export default function MachineModels() {
       </div>
     );
   }
-
-  const filtered = useMemo(() => {
-    return machineModels.filter((m) => {
-      const q = debouncedSearch.toLowerCase();
-      const matchSearch = m.name.toLowerCase().includes(q) || m.brand.toLowerCase().includes(q) || m.model.toLowerCase().includes(q);
-      const matchCategory = categoryFilter === "all" || m.category === categoryFilter;
-      const matchBrand = brandFilter === "all" || m.brand === brandFilter;
-      return matchSearch && matchCategory && matchBrand;
-    });
-  }, [machineModels, debouncedSearch, categoryFilter, brandFilter]);
-
-  const machineComparators = useMemo(() => ({
-    name: (a: MachineModel, b: MachineModel) => a.name.localeCompare(b.name),
-    brand: (a: MachineModel, b: MachineModel) => a.brand.localeCompare(b.brand),
-    model: (a: MachineModel, b: MachineModel) => a.model.localeCompare(b.model),
-    category: (a: MachineModel, b: MachineModel) => a.category.localeCompare(b.category),
-    year: (a: MachineModel, b: MachineModel) => (a.year || 0) - (b.year || 0),
-  }), []);
-
-  const { sort, toggleSort, sorted } = useTableSort(filtered, {
-    comparators: machineComparators,
-    defaultColumn: "name",
-  });
-
-  const pagination = usePagination({ totalItems: sorted.length });
-  const paginated = useMemo(() => {
-    return sorted.slice(pagination.startIndex, pagination.endIndex);
-  }, [sorted, pagination.startIndex, pagination.endIndex]);
 
   const updateSearch = (v: string) => { setSearch(v); pagination.resetPage(); };
   const updateCategoryFilter = (v: string) => { setCategoryFilter(v); pagination.resetPage(); };
@@ -102,12 +108,6 @@ export default function MachineModels() {
     setDeleteOpen(false);
     setDeleteId(null);
   };
-
-  const { totalModels, modelsWithProducts, totalCompatibilities } = useMemo(() => ({
-    totalModels: filtered.length,
-    modelsWithProducts: filtered.filter(m => getProductCount(m.id) > 0).length,
-    totalCompatibilities: filtered.reduce((sum, m) => sum + getProductCount(m.id), 0),
-  }), [filtered, getProductCount]);
 
   return (
     <div className="space-y-6">

@@ -3,9 +3,9 @@ import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-quer
 import { showSuccess, showError } from "@/utils/toast";
 
 export interface CrudService<TCreate, TUpdate = TCreate> {
-  create: (data: TCreate) => Promise<unknown>;
-  update: (id: string, data: TUpdate) => Promise<unknown>;
-  remove: (id: string) => Promise<void>;
+  create(data: TCreate): Promise<unknown>;
+  update(id: string, data: TUpdate): Promise<unknown>;
+  remove(id: string): Promise<void>;
 }
 
 export interface CrudMutationsConfig<_TEntity extends { id: string }, TForm> {
@@ -42,8 +42,8 @@ export function useCrudMutations<TEntity extends { id: string }, TForm>(
     }) => {
       const payload = config.mapFormData ? config.mapFormData(data) : data;
       return editingEntity
-        ? config.service.update(editingEntity.id, payload)
-        : config.service.create(payload);
+        ? config.service.update(editingEntity.id, payload as Record<string, unknown>)
+        : config.service.create(payload as Record<string, unknown>);
     },
     onSuccess: (_, { editingEntity }) => {
       invalidate();

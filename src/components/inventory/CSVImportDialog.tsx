@@ -132,6 +132,7 @@ export function CSVImportDialog({ open, onOpenChange }: CSVImportDialogProps) {
       cost_cents: toCents(v.data!.cost_soles) as Cents,
       min_stock: v.data!.min_stock,
       max_stock: v.data!.max_stock,
+      stock: v.data!.stock ?? 0,
       supplier: v.data!.supplier || undefined,
       tax_affectation: v.data!.tax_affectation,
       image_url: v.data!.image_url || null,

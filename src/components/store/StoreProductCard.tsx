@@ -44,7 +44,7 @@ export function StoreProductCard({ product, onAdd, featured = false, availableSt
           )}
           {isLowStock && (
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-amber-500 text-white shadow-sm animate-pulse">
-              <Zap className="w-3 h-3" /> ¡Últimas {warehouseStock}!
+              <Zap className="w-3 h-3" /> ¡Últimas {availableStock}!
             </span>
           )}
         </div>

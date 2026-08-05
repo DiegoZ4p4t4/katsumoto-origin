@@ -112,7 +112,7 @@ export default function CreateDespatch() {
       conductor_nombre: sanitizeName(condNombre),
       conductor_licencia: condLicencia.toUpperCase().slice(0, 20),
       vehiculo_placa: vehiculoPlaca.toUpperCase().replace(/[^A-Z0-9-]/g, ""),
-      items: items.filter((i) => i.product_name.trim()),
+      items: items.filter((i) => i.product_name.trim()).map((i) => ({ ...i, unit: i.unit || "NIU" })),
     };
 
     const result = despatchFormSchema.safeParse(formValues);
@@ -122,17 +122,17 @@ export default function CreateDespatch() {
       return;
     }
 
-    const formData: DespatchFormData = { ...result.data, modalidad_traslado: "01" };
+    const formData = { ...result.data } as DespatchFormData;
 
     create(formData, {
-      onSuccess: () => navigate("/despatches"),
+      onSuccess: () => navigate("/admin/despatches"),
     });
   };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/despatches")} className="rounded-xl">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/admin/despatches")} className="rounded-xl">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <h1 className="text-2xl font-bold">Nueva Guia de Remision</h1>
@@ -354,7 +354,7 @@ export default function CreateDespatch() {
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => navigate("/despatches")} className="rounded-xl">
+          <Button type="button" variant="outline" onClick={() => navigate("/admin/despatches")} className="rounded-xl">
             Cancelar
           </Button>
           <Button type="submit" disabled={isCreating} className="rounded-xl bg-orange-600 hover:bg-orange-700">

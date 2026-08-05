@@ -7,8 +7,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useClients } from "@/hooks/useClients";
 import { useClientMutations } from "@/hooks/useClientMutations";
 import { useInvoices } from "@/hooks/useInvoices";
-import { useQuery } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { invoiceService } from "@/services/invoice.service";
 import { customerService } from "@/services/customer.service";
 import { toCents, formatInvoiceNumber } from "@/lib/format";
@@ -33,10 +32,11 @@ import { showSuccess, showError } from "@/utils/toast";
 
 export default function CreateInvoice() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { branches: _branches, branchStocks, selectedBranchId, findBranch, isLoading: branchesLoading } = useBranches();
   const { products, isLoading: productsLoading } = useProducts();
   const { clients, isLoading: clientsLoading } = useClients();
-  const { saveClient } = useClientMutations();
+  const { saveClientAsync } = useClientMutations();
   const { invoices } = useInvoices();
 
   const { data: allInvoices = [] } = useQuery({
@@ -143,15 +143,18 @@ export default function CreateInvoice() {
       return;
     }
     try {
-      const created = await saveClient({
+      const created = await saveClientAsync({
         name: data.name,
         document_type: data.documentType,
         document_number: data.documentNumber,
-        phone: data.phone || null,
-        email: data.email || null,
-        address: data.address || null,
-        city: data.city || null,
-      });
+        phone: data.phone || "",
+        email: data.email || "",
+        address: data.address || "",
+        city: data.city || "",
+        department_code: "",
+        province_code: "",
+        district_code: "",
+      }, null);
       if (created && (created as { id: string }).id) {
         setValue("clientId", (created as { id: string }).id);
       }
@@ -211,7 +214,7 @@ export default function CreateInvoice() {
       queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.movements.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.branches.allStock });
-      navigate("/invoices");
+      navigate("/admin/invoices");
     },
     onError: (err) => {
       const isStockError = err.message?.includes("Stock insuficiente");
@@ -265,7 +268,7 @@ export default function CreateInvoice() {
     return (
       <div className="space-y-6 max-w-4xl">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/invoices")} className="rounded-xl">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/admin/invoices")} className="rounded-xl">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-2xl md:text-3xl font-bold">Nuevo Comprobante</h1>
@@ -292,7 +295,7 @@ export default function CreateInvoice() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/invoices")} className="rounded-xl">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/admin/invoices")} className="rounded-xl">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex items-center gap-2">
@@ -374,7 +377,7 @@ export default function CreateInvoice() {
       </Card>
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => navigate("/invoices")} className="rounded-xl">Cancelar</Button>
+        <Button variant="outline" onClick={() => navigate("/admin/invoices")} className="rounded-xl">Cancelar</Button>
         <Button onClick={handleSave} disabled={!clientId || fields.length === 0} className="rounded-xl bg-orange-600 hover:bg-orange-700">
           Emitir {INVOICE_TYPES[invoiceType]?.label}
         </Button>

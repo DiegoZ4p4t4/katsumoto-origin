@@ -2,11 +2,11 @@ import { branchService } from "@/services/branch.service";
 import { queryKeys } from "@/lib/query-keys";
 import type { Branch } from "@/lib/types";
 import type { BranchFormValues } from "@/lib/schemas";
-import { useCrudMutations } from "./useCrudMutations";
+import { useCrudMutations, type CrudService } from "./useCrudMutations";
 
 export function useBranchMutations() {
   const crud = useCrudMutations<Branch, BranchFormValues>({
-    service: branchService,
+    service: branchService as unknown as CrudService<Record<string, unknown>, Record<string, unknown>>,
     queryKeysToInvalidate: [
       queryKeys.branches.all,
       queryKeys.branches.allStock,

@@ -5,6 +5,7 @@ import { useBranches } from "@/hooks/useBranches";
 import { useMachines } from "@/hooks/useMachines";
 import { productService } from "@/services/product.service";
 import { queryKeys } from "@/lib/query-keys";
+import type { MachineModel } from "@/lib/types";
 
 export function useProducts() {
   const { selectedBranchId, branchStocks, branches } = useBranches();

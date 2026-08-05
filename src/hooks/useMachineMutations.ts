@@ -2,11 +2,11 @@ import { machineService } from "@/services/machine.service";
 import { queryKeys } from "@/lib/query-keys";
 import type { MachineModel } from "@/lib/types";
 import type { MachineFormValues } from "@/lib/schemas";
-import { useCrudMutations } from "./useCrudMutations";
+import { useCrudMutations, type CrudService } from "./useCrudMutations";
 
 export function useMachineMutations() {
   const crud = useCrudMutations<MachineModel, MachineFormValues>({
-    service: machineService,
+    service: machineService as unknown as CrudService<Record<string, unknown>, Record<string, unknown>>,
     queryKeysToInvalidate: [
       queryKeys.machines.all,
       queryKeys.machines.productMachines,

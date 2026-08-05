@@ -11,7 +11,7 @@ import type { UsePaginationReturn } from "@/hooks/usePagination";
 interface MachineTableProps {
   machines: MachineModel[];
   sort: SortState<"name" | "brand" | "model" | "category" | "year">;
-  toggleSort: (column: string) => void;
+  toggleSort: (column: "name" | "brand" | "model" | "category" | "year") => void;
   pagination: UsePaginationReturn;
   totalItems: number;
   getProductCount: (id: string) => number;

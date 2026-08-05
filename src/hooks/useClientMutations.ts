@@ -2,11 +2,11 @@ import { customerService } from "@/services/customer.service";
 import { queryKeys } from "@/lib/query-keys";
 import type { Customer } from "@/lib/types";
 import type { ClientFormValues } from "@/lib/schemas";
-import { useCrudMutations } from "./useCrudMutations";
+import { useCrudMutations, type CrudService } from "./useCrudMutations";
 
 export function useClientMutations() {
   const crud = useCrudMutations<Customer, ClientFormValues>({
-    service: customerService,
+    service: customerService as unknown as CrudService<Record<string, unknown>, Record<string, unknown>>,
     queryKeysToInvalidate: [queryKeys.clients.all],
     messages: {
       created: "Cliente registrado exitosamente",

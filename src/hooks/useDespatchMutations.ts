@@ -38,7 +38,9 @@ export function useDespatchMutations() {
       const labels: Record<DespatchStatus, string> = {
         draft: "marcada como borrador",
         issued: "marcada como emitida",
+        processing: "marcada en proceso",
         accepted: "marcada como aceptada",
+        rejected: "marcada como rechazada",
         cancelled: "anulada",
       };
       showSuccess(`Guia ${labels[status]}`);

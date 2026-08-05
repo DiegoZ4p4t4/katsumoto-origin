@@ -37,26 +37,6 @@ export default function CashRegisters() {
 
   const branchId = selectedBranchId;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <AlertCircle className="w-12 h-12 text-red-500" />
-        <p className="text-muted-foreground">Error al cargar cajas</p>
-        <Button variant="outline" onClick={() => window.location.reload()} className="rounded-xl">
-          <RefreshCw className="w-4 h-4 mr-2" />Reintentar
-        </Button>
-      </div>
-    );
-  }
-
   const [openDialog, setOpenDialog] = useState(false);
   const [closeDialogId, setCloseDialogId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -85,6 +65,45 @@ export default function CashRegisters() {
     const expectedCash = reg.opening_amount_cents + cashTotal;
     return { txns, byMethod, total, cashTotal, expectedCash };
   }, [getTransactions]);
+
+  const summaryMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof getSummary>>();
+    for (const reg of registers) {
+      map.set(reg.id, getSummary(reg));
+    }
+    return map;
+  }, [registers, getSummary]);
+
+  const todayTotal = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return registers
+      .filter(r => r.opened_at.startsWith(today))
+      .reduce((s, r) => s + (summaryMap.get(r.id)?.total ?? 0), 0);
+  }, [registers, summaryMap]);
+
+  const allTimeTotal = useMemo(() => {
+    return registers.reduce((s, r) => s + (summaryMap.get(r.id)?.total ?? 0), 0);
+  }, [registers, summaryMap]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <AlertCircle className="w-12 h-12 text-red-500" />
+        <p className="text-muted-foreground">Error al cargar cajas</p>
+        <Button variant="outline" onClick={() => window.location.reload()} className="rounded-xl">
+          <RefreshCw className="w-4 h-4 mr-2" />Reintentar
+        </Button>
+      </div>
+    );
+  }
 
   const handleOpen = () => {
     const branchToUse = branchId !== "all" ? branchId : dialogBranchId;
@@ -125,25 +144,6 @@ export default function CashRegisters() {
 
   const detailRegister = allRegisters.find(r => r.id === detailId);
   const detailSummary = detailRegister ? getSummary(detailRegister) : null;
-
-  const summaryMap = useMemo(() => {
-    const map = new Map<string, ReturnType<typeof getSummary>>();
-    for (const reg of registers) {
-      map.set(reg.id, getSummary(reg));
-    }
-    return map;
-  }, [registers, getSummary]);
-
-  const todayTotal = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
-    return registers
-      .filter(r => r.opened_at.startsWith(today))
-      .reduce((s, r) => s + (summaryMap.get(r.id)?.total ?? 0), 0);
-  }, [registers, summaryMap]);
-
-  const allTimeTotal = useMemo(() => {
-    return registers.reduce((s, r) => s + (summaryMap.get(r.id)?.total ?? 0), 0);
-  }, [registers, summaryMap]);
 
   return (
     <div className="space-y-6">

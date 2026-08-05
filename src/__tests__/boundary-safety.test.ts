@@ -15,7 +15,8 @@ describe("boundary — null/undefined safety patterns", () => {
 
   it("filter on undefined array returns empty", () => {
     const arr: { id: string; stock: number }[] | undefined = undefined;
-    const inStock = (arr || []).filter((p) => p.stock > 0).length;
+    const fallback: { id: string; stock: number }[] = [];
+    const inStock = (arr || fallback).filter((p) => p.stock > 0).length;
     expect(inStock).toBe(0);
   });
 

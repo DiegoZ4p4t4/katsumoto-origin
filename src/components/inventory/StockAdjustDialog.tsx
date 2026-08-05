@@ -74,7 +74,7 @@ export function StockAdjustDialog({
               <Label>Tipo de Movimiento</Label>
               <Select
                 value={adjustMovementType}
-                onValueChange={(v) => setValue("movementType", v as "in" | "out" | "transfer")}
+                onValueChange={(v) => setValue("movementType", v as "in" | "out" | "adjustment")}
               >
                 <SelectTrigger className="rounded-xl">
                   <SelectValue />

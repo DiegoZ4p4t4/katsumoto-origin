@@ -51,6 +51,7 @@ export default function StoreCheckout() {
   const [shippingDist, setShippingDist] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onlineBranch = useMemo(
     () => branches.find(b => b.type === "online" && b.is_active),
@@ -123,6 +124,7 @@ export default function StoreCheckout() {
 
   const handleSubmit = async () => {
     if (!canSubmit || !calc || !onlineBranch) return;
+    setLoading(true);
     try {
       const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
       const randSuffix = String(Math.floor(Math.random() * 900) + 100);
@@ -164,6 +166,8 @@ export default function StoreCheckout() {
       showSuccess(`¡Pedido ${number} registrado exitosamente!`);
     } catch (err) {
       showError("Error al registrar pedido: " + (err instanceof Error ? err.message : "Intenta nuevamente"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -416,11 +420,10 @@ export default function StoreCheckout() {
               )}
               <Button
                 onClick={handleSubmit}
-              disabled={loading || !canSubmit}
-                disabled={!canSubmit}
+                disabled={loading || !canSubmit}
                 className="w-full mt-5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 h-12 text-base font-bold shadow-lg shadow-orange-500/20 disabled:opacity-40 text-white border-0"
               >
-                Confirmar pedido
+                {loading ? "Procesando..." : "Confirmar pedido"}
               </Button>
               <p className="text-[10px] text-muted-foreground text-center mt-3">
                 Al confirmar, tu pedido será revisado por nuestro equipo
