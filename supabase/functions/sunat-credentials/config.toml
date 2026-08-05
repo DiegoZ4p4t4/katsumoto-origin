@@ -1,0 +1,2 @@
+[functions.sunat-credentials]
+verify_jwt = false

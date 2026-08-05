@@ -1,0 +1,2 @@
+[functions.sunat-billing]
+verify_jwt = false

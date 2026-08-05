@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+dist-store/
+.next/
+build/
+src-tauri/target/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker volumes
+pgdata/
+redisdata/
+
+# Testing
+coverage/
+
+# Debug artifacts
+.playwright-mcp/
+test-results/
+
+# Signing keys
+*.key
+*.key.pub

@@ -1,0 +1,98 @@
+CREATE OR REPLACE FUNCTION public.create_invoice_with_items(p_organization_id uuid, p_serie text, p_correlativo integer, p_invoice_type text, p_customer_id text, p_branch_id uuid, p_subtotal_cents bigint, p_gravada_cents bigint, p_exonerada_cents bigint, p_inafecta_cents bigint, p_exportacion_cents bigint, p_igv_rate numeric, p_igv_cents bigint, p_total_cents bigint, p_payment_method text, p_register_id uuid, p_notes text, p_created_by uuid, p_items jsonb)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_invoice_id UUID;
+  v_item JSONB;
+  v_number TEXT;
+  v_product_org_id UUID;
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.branches
+    WHERE id = p_branch_id AND organization_id = p_organization_id AND is_active = true
+  ) THEN
+    RAISE EXCEPTION 'Sede no pertenece a la organizacion';
+  END IF;
+
+  v_number := p_serie || '-' || LPAD(p_correlativo::text, 6, '0');
+
+  INSERT INTO public.invoices (
+    organization_id, number, serie, correlativo, invoice_type,
+    customer_id, branch_id, status,
+    subtotal_cents, gravada_cents, exonerada_cents, inafecta_cents,
+    exportacion_cents, igv_rate, igv_cents, total_cents,
+    payment_method, register_id, notes, created_by
+  ) VALUES (
+    p_organization_id, v_number, p_serie, p_correlativo, p_invoice_type,
+    p_customer_id::uuid, p_branch_id, 'issued',
+    p_subtotal_cents, p_gravada_cents, p_exonerada_cents, p_inafecta_cents,
+    p_exportacion_cents, p_igv_rate, p_igv_cents, p_total_cents,
+    p_payment_method, p_register_id, p_notes, p_created_by
+  ) RETURNING id INTO v_invoice_id;
+
+  FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+  LOOP
+    INSERT INTO public.invoice_items (
+      invoice_id, product_id, product_name, product_sku,
+      quantity, unit_price_cents, discount_percent,
+      discount_cents, line_total_cents, tax_affectation, igv_cents
+    ) VALUES (
+      v_invoice_id,
+      (v_item->>'product_id')::UUID,
+      v_item->>'product_name',
+      v_item->>'product_sku',
+      (v_item->>'quantity')::INTEGER,
+      (v_item->>'unit_price_cents')::BIGINT,
+      COALESCE((v_item->>'discount_percent')::NUMERIC, 0),
+      COALESCE((v_item->>'discount_cents')::BIGINT, 0),
+      (v_item->>'line_total_cents')::BIGINT,
+      COALESCE(v_item->>'tax_affectation', 'gravado'),
+      COALESCE((v_item->>'igv_cents')::BIGINT, 0)
+    );
+
+    IF (v_item->>'product_id') IS NOT NULL THEN
+      SELECT organization_id INTO v_product_org_id
+      FROM public.products
+      WHERE id = (v_item->>'product_id')::UUID;
+
+      IF v_product_org_id IS NULL THEN
+        RAISE EXCEPTION 'Producto no encontrado: %', (v_item->>'product_name');
+      END IF;
+
+      IF v_product_org_id != p_organization_id THEN
+        RAISE EXCEPTION 'Producto no pertenece a la organizacion: %', (v_item->>'product_name');
+      END IF;
+
+      UPDATE public.branch_stock
+      SET stock = stock - (v_item->>'quantity')::INTEGER
+      WHERE branch_id = p_branch_id
+        AND product_id = (v_item->>'product_id')::UUID
+        AND stock >= (v_item->>'quantity')::INTEGER;
+
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'Stock insuficiente para: %', (v_item->>'product_name');
+      END IF;
+
+      INSERT INTO public.stock_movements (
+        organization_id, product_id, branch_id, movement_type,
+        quantity, reference_type, reference_id, created_by
+      ) VALUES (
+        p_organization_id,
+        (v_item->>'product_id')::UUID,
+        p_branch_id,
+        'out',
+        (v_item->>'quantity')::INTEGER,
+        'invoice',
+        v_invoice_id,
+        p_created_by
+      );
+    END IF;
+  END LOOP;
+
+  RETURN v_invoice_id;
+END;
+$function$
+
