@@ -7,8 +7,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useClients } from "@/hooks/useClients";
 import { useClientMutations } from "@/hooks/useClientMutations";
 import { useInvoices } from "@/hooks/useInvoices";
-import { useQuery } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { invoiceService } from "@/services/invoice.service";
 import { customerService } from "@/services/customer.service";
 import { toCents, formatInvoiceNumber } from "@/lib/format";
@@ -33,10 +32,11 @@ import { showSuccess, showError } from "@/utils/toast";
 
 export default function CreateInvoice() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { branches: _branches, branchStocks, selectedBranchId, findBranch, isLoading: branchesLoading } = useBranches();
   const { products, isLoading: productsLoading } = useProducts();
   const { clients, isLoading: clientsLoading } = useClients();
-  const { saveClient } = useClientMutations();
+  const { saveClientAsync } = useClientMutations();
   const { invoices } = useInvoices();
 
   const { data: allInvoices = [] } = useQuery({
@@ -143,15 +143,18 @@ export default function CreateInvoice() {
       return;
     }
     try {
-      const created = await saveClient({
+      const created = await saveClientAsync({
         name: data.name,
         document_type: data.documentType,
         document_number: data.documentNumber,
-        phone: data.phone || null,
-        email: data.email || null,
-        address: data.address || null,
-        city: data.city || null,
-      });
+        phone: data.phone || "",
+        email: data.email || "",
+        address: data.address || "",
+        city: data.city || "",
+        department_code: "",
+        province_code: "",
+        district_code: "",
+      }, null);
       if (created && (created as { id: string }).id) {
         setValue("clientId", (created as { id: string }).id);
       }
