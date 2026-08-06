@@ -30,12 +30,12 @@ function getInitials(name: string): string {
 
 interface ProductImageProps {
   src: string | null;
-  name: string;
+  name?: string;
   className?: string;
   fallbackIcon?: React.ReactNode;
 }
 
-export function ProductImage({ src, name, className = "", fallbackIcon }: ProductImageProps) {
+export function ProductImage({ src, name = "", className = "", fallbackIcon }: ProductImageProps) {
   const [hasError, setHasError] = useState(false);
 
   if (src && !hasError) {
