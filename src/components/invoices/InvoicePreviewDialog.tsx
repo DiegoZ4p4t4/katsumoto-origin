@@ -5,6 +5,7 @@ import { Download, Printer, Loader2, FileText } from "lucide-react";
 import type { Invoice } from "@/lib/types";
 import type { SellerInfo } from "@/lib/printing/seller-info";
 import type { PrintOptions } from "@/lib/printing/types";
+import { openPdfInTab } from "@/lib/printing/open";
 
 interface InvoicePreviewDialogProps {
   invoice: Invoice | null;
@@ -59,36 +60,18 @@ export function InvoicePreviewDialog({
   const handlePrint = useCallback(async () => {
     if (!invoice || !sellerInfo) return;
     const { generateInvoice } = await import("@/lib/printing/generate");
-    const doc = await generateInvoice(invoice, sellerInfo, { ...printOptions, action: "preview" });
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-    const w = window.open(url, "_blank");
-    if (w) {
-      w.onload = () => setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } else {
-      window.location.href = url;
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    }
+    await openPdfInTab(() => generateInvoice(invoice, sellerInfo, { ...printOptions, action: "preview" }));
   }, [invoice, sellerInfo, printOptions]);
 
   const handleTicket = useCallback(async () => {
     if (!invoice || !sellerInfo) return;
     const { generateThermalTicket } = await import("@/lib/printing/formats/thermal-ticket");
-    const doc = await generateThermalTicket(invoice, sellerInfo, {
+    await openPdfInTab(() => generateThermalTicket(invoice, sellerInfo, {
       format: "thermal-58mm",
       branchName: printOptions?.branchName,
       taxConfig: printOptions?.taxConfig,
-      action: "print",
-    });
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-    const w = window.open(url, "_blank");
-    if (w) {
-      w.onload = () => setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } else {
-      window.location.href = url;
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    }
+      action: "preview",
+    }));
   }, [invoice, sellerInfo, printOptions]);
 
   if (!invoice || !open) return null;

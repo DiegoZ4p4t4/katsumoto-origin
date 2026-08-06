@@ -11,7 +11,14 @@ import { INVOICE_TYPE_SUNAT_CODE, DOCUMENT_TYPE_SUNAT_CODE } from "../../types/s
 const W = 58;
 const M = 2;
 const CW = W - M * 2;
-const FONT = "courier";
+const FONT = "helvetica";
+
+function formatIssueDate(dateStr: string | undefined): string {
+  if (!dateStr) return new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const parts = dateStr.slice(0, 10).split("-");
+  if (parts.length === 3 && parts[0] && parts[1] && parts[2]) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return new Date(dateStr).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
 
 // ─── Number to words (ES, PEN) ───
 
@@ -77,9 +84,8 @@ function estimateHeight(invoice: Invoice, sellerInfo: SellerInfo, options?: Prin
   const items = invoice.items || [];
   for (const item of items) {
     const name = item.product_name || "Producto";
-    const sku = item.product_sku ? 1 : 0;
-    const lines = Math.ceil(name.length / 24);
-    h += lines * 3 + 4 + sku * 3;
+    const lines = Math.max(1, Math.ceil(name.length / 26));
+    h += lines * 3 + 4.8;
   }
   h += 9; // separator + tax title
   if (invoice.gravada_cents > 0) h += 3.5;
@@ -223,9 +229,7 @@ export async function generateThermalTicket(
 
   doc.setFont(FONT, "normal");
   doc.setTextColor(60, 60, 60);
-  const dateStr = invoice.issue_date
-    ? new Date(invoice.issue_date).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" })
-    : new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const dateStr = formatIssueDate(invoice.issue_date);
   const timeStr = new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   ltext(`Fecha: ${dateStr}`, y, 5.5);
   rtext(`Hora: ${timeStr}`, y, 5.5);
@@ -266,14 +270,14 @@ export async function generateThermalTicket(
     ctext("(sin productos)", y, 5.5);
     y += 4;
   } else {
-    // Column header
+    const nameX = M + 11;
+    const nameMaxW = (W - M) - nameX - 14;
     doc.setFont(FONT, "bold");
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(5);
     doc.text("#", M, y);
     doc.text("Cant", M + 4, y);
-    doc.text("Descripcion", M + 12, y);
-    doc.text("P.Unit", M + 37, y);
+    doc.text("Descripcion", nameX, y);
     doc.text("Total", W - M, y, { align: "right" });
     y += 3;
 
@@ -291,31 +295,25 @@ export async function generateThermalTicket(
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(5.5);
 
-      // Item number
       doc.text(String(i + 1), M, y);
-      // Quantity
       doc.text(String(qty), M + 4, y);
-      // Product name (wrapped)
-      const nameW = 24; // chars for description column
-      const nameLines = doc.splitTextToSize(name, CW - 16);
-      doc.text(nameLines[0], M + 12, y);
-      // Right-aligned prices
-      doc.text(unitPrice, M + 37, y);
       doc.text(lineTotal, W - M, y, { align: "right" });
-      y += 3.5;
 
-      // Extra name lines + SKU
+      const nameLines = doc.splitTextToSize(name, nameMaxW);
+      doc.text(nameLines[0], nameX, y);
+      y += 3;
+
       for (let j = 1; j < nameLines.length; j++) {
-        doc.text(nameLines[j], M + 12, y);
-        y += 3;
-      }
-      if (sku) {
-        doc.setTextColor(80, 80, 80);
-        doc.text(`SKU: ${sku}`, M + 12, y);
+        doc.text(nameLines[j], nameX, y);
         y += 3;
       }
 
-      // Light separator between items
+      doc.setFontSize(4.5);
+      doc.setTextColor(90, 90, 90);
+      doc.text(`P.Unit: ${unitPrice}`, M, y);
+      if (sku) doc.text(`SKU: ${sku}`, W - M, y, { align: "right" });
+      y += 2.8;
+
       if (i < items.length - 1) {
         lightSep(y);
         y += 2;
@@ -515,20 +513,17 @@ export async function generateThermalTicket(
   ctext(new Date().toLocaleString("es-PE"), y, 4.5);
 
   // ─── Output ───
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
   const action = options?.action || "download";
 
   if (action === "download") {
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.download = `${invoice.number}-ticket.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-  } else {
-    window.open(url, "_blank");
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 

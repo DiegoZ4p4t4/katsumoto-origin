@@ -5,6 +5,8 @@ const LOGO_MAX_W = 28;
 const LOGO_MAX_H = 14;
 
 function formatDatePDF(dateStr: string): string {
+  const parts = dateStr.slice(0, 10).split("-");
+  if (parts.length === 3 && parts[0] && parts[1] && parts[2]) return `${parts[2]}/${parts[1]}/${parts[0]}`;
   return new Date(dateStr).toLocaleDateString("es-PE", {
     year: "numeric",
     month: "2-digit",

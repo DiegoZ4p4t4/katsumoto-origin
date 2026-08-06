@@ -40,7 +40,7 @@ export default function POS() {
     openRegisterAmount, setOpenRegisterAmount, showOpenRegister, setShowOpenRegister,
     activeBranch, isWarehouse, openRegister, canSell, registerNeedsOpen, clients,
     handleOpenRegister, handleLookupClient, handleInvoiceTypeChange,
-    handleCobrar, handleConfirmPayment, isPaymentPending, handleDownloadPDF, handlePrintTicket, handleClosePayment,
+    handleCobrar, handleConfirmPayment, isPaymentPending, handlePrintA4, handlePrintTicket, handleClosePayment,
   } = usePosInvoice(cart, calc);
 
   useEffect(() => {
@@ -223,7 +223,7 @@ export default function POS() {
 
       {calc && <PosPaymentDialog open={paymentOpen} totalCents={calc.total_cents} onClose={handleClosePaymentAndCart}
         onConfirm={handleConfirmPayment} isPending={isPaymentPending} lastInvoiceNumber={lastInvoiceNumber}
-        onDownloadPDF={lastInvoiceNumber ? handleDownloadPDF : undefined}
+        onPrintA4={lastInvoiceNumber ? handlePrintA4 : undefined}
         onPrintTicket={lastInvoiceNumber ? handlePrintTicket : undefined} />}
     </div>
   );

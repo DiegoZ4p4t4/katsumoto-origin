@@ -2,6 +2,7 @@ import type { PrinterAdapter } from "../types";
 import { loadPrinterConfig } from "../printer-config";
 import { buildTestReceipt } from "@/lib/printing/thermal";
 import { generateThermalTicket } from "@/lib/printing/formats/thermal-ticket";
+import { openPdfInTab } from "@/lib/printing/open";
 
 export class WebPrinterAdapter implements PrinterAdapter {
   readonly type = "pdf" as const;
@@ -21,10 +22,12 @@ export class WebPrinterAdapter implements PrinterAdapter {
     sellerInfo: Parameters<typeof generateThermalTicket>[1],
     options?: Parameters<typeof generateThermalTicket>[2],
   ): Promise<void> {
-    await generateThermalTicket(invoice, sellerInfo, {
-      ...options,
-      action: "print",
-    });
+    await openPdfInTab(() =>
+      generateThermalTicket(invoice, sellerInfo, {
+        ...options,
+        action: "preview",
+      })
+    );
   }
 
   async printTest(): Promise<void> {

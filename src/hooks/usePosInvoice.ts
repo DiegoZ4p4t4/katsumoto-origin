@@ -24,6 +24,7 @@ import type { CartItem } from "@/components/pos/PosCart";
 import type { LookupResult } from "@/components/CustomerLookup";
 import { generateInvoicePDF } from "@/lib/pdf";
 import { getSellerInfo } from "@/lib/printing/seller-info";
+import { openPdfInTab } from "@/lib/printing/open";
 import { showSuccess, showError } from "@/utils/toast";
 
 const CONSUMIDOR_FINAL_DNI = "00000000";
@@ -270,20 +271,22 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
     });
   }, [calc, canSell, openRegister, invoiceType, clientId, clients, cart, activeBranch, createInvoiceMutation, queryClient]);
 
-  const handleDownloadPDF = useCallback(async () => {
+  const handlePrintA4 = useCallback(async () => {
     if (!lastInvoiceId) return;
+    const pdfTaxConfig = taxConfig.sellerProvinceCode
+      ? {
+          sellerProvinceCode: taxConfig.sellerProvinceCode,
+          sellerDistrictCode: taxConfig.sellerDistrictCode || undefined,
+          selvaLawEnabled: taxConfig.selvaLawEnabled,
+        }
+      : undefined;
     try {
       const inv = await invoiceService.getById(lastInvoiceId);
       if (!inv) return;
-      const pdfTaxConfig = taxConfig.sellerProvinceCode
-        ? {
-            sellerProvinceCode: taxConfig.sellerProvinceCode,
-            sellerDistrictCode: taxConfig.sellerDistrictCode || undefined,
-            selvaLawEnabled: taxConfig.selvaLawEnabled,
-          }
-        : undefined;
       const sellerInfo = await getSellerInfo();
-      await generateInvoicePDF(inv, sellerInfo, { branchName: activeBranch?.name, taxConfig: pdfTaxConfig });
+      await openPdfInTab(() =>
+        generateInvoicePDF(inv, sellerInfo, { branchName: activeBranch?.name, taxConfig: pdfTaxConfig, action: "preview" })
+      );
     } catch (e) {
       showError("Error al generar PDF: " + (e as Error).message);
     }
@@ -291,30 +294,28 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
 
   const handlePrintTicket = useCallback(async () => {
     if (!lastInvoiceId) return;
+    const pdfTaxConfig = taxConfig.sellerProvinceCode
+      ? {
+          sellerProvinceCode: taxConfig.sellerProvinceCode,
+          sellerDistrictCode: taxConfig.sellerDistrictCode || undefined,
+          selvaLawEnabled: taxConfig.selvaLawEnabled,
+        }
+      : undefined;
     try {
       const inv = await invoiceService.getById(lastInvoiceId);
       if (!inv) return;
-      const pdfTaxConfig = taxConfig.sellerProvinceCode
-        ? {
-            sellerProvinceCode: taxConfig.sellerProvinceCode,
-            sellerDistrictCode: taxConfig.sellerDistrictCode || undefined,
-            selvaLawEnabled: taxConfig.selvaLawEnabled,
-          }
-        : undefined;
       const sellerInfo = await getSellerInfo();
-      const doc = await import("@/lib/printing/formats/thermal-ticket").then(m =>
-        m.generateThermalTicket(inv, sellerInfo, {
-          format: "thermal-58mm",
-          branchName: activeBranch?.name,
-          taxConfig: pdfTaxConfig,
-          cashReceivedCents: lastCashReceivedCents,
-          action: "print",
-        })
+      await openPdfInTab(() =>
+        import("@/lib/printing/formats/thermal-ticket").then(m =>
+          m.generateThermalTicket(inv, sellerInfo, {
+            format: "thermal-58mm",
+            branchName: activeBranch?.name,
+            taxConfig: pdfTaxConfig,
+            cashReceivedCents: lastCashReceivedCents,
+            action: "preview",
+          })
+        )
       );
-      const blob = doc.output("blob");
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (e) {
       showError("Error al imprimir ticket: " + (e as Error).message);
     }
@@ -352,7 +353,7 @@ export function usePosInvoice(cart: CartItem[], calc: InvoiceCalculation | null)
     handleCobrar,
     handleConfirmPayment,
     isPaymentPending: createInvoiceMutation.isPending,
-    handleDownloadPDF,
+    handlePrintA4,
     handlePrintTicket,
     handleClosePayment,
   };

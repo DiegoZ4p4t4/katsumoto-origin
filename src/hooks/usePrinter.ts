@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { usePlatform, loadPrinterConfig, savePrinterConfig } from "@/lib/platform";
 import { buildEscposReceipt, buildTestReceipt, type ReceiptOptions, type PaperWidth } from "@/lib/printing/thermal";
 import { generateThermalTicket } from "@/lib/printing/formats/thermal-ticket";
+import { openPdfInTab } from "@/lib/printing/open";
 import { getSellerInfo } from "@/lib/printing/seller-info";
 import type { Invoice } from "@/lib/types";
 import type { PrinterConfig } from "@/lib/platform";
@@ -75,10 +76,10 @@ export function usePrinter(): UsePrinterReturn {
       const escpos = buildEscposReceipt(invoice, sellerInfo, receiptOpts);
       await printer.printReceipt(escpos);
     } else {
-      await generateThermalTicket(invoice, sellerInfo, {
+      await openPdfInTab(() => generateThermalTicket(invoice, sellerInfo, {
         format: "thermal-80mm",
-        action: "print",
-      });
+        action: "preview",
+      }));
     }
   }, [config, isTauri, printer, _getSellerInfo]);
 

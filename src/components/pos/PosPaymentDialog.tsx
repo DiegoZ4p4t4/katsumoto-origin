@@ -4,7 +4,7 @@ import type { Cents, PaymentMethod } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Banknote, CreditCard, ArrowLeftRight, Clock, CheckCircle, Download, Sparkles, Smartphone, Printer, type LucideIcon } from "lucide-react";
+import { Banknote, CreditCard, ArrowLeftRight, Clock, CheckCircle, Sparkles, Smartphone, Printer, type LucideIcon } from "lucide-react";
 
 const _iconMap: Record<string, LucideIcon> = { Banknote, CreditCard, ArrowLeftRight, Clock, Smartphone };
 
@@ -25,11 +25,11 @@ interface PosPaymentDialogProps {
   onConfirm: (method: PaymentMethod, receivedCents?: number) => void;
   isPending?: boolean;
   lastInvoiceNumber?: string;
-  onDownloadPDF?: () => void;
+  onPrintA4?: () => void;
   onPrintTicket?: () => void;
 }
 
-export function PosPaymentDialog({ open, totalCents, onClose, onConfirm, isPending, lastInvoiceNumber, onDownloadPDF, onPrintTicket }: PosPaymentDialogProps) {
+export function PosPaymentDialog({ open, totalCents, onClose, onConfirm, isPending, lastInvoiceNumber, onPrintA4, onPrintTicket }: PosPaymentDialogProps) {
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [cashReceived, setCashReceived] = useState("");
   const [success, setSuccess] = useState(false);
@@ -87,9 +87,9 @@ export function PosPaymentDialog({ open, totalCents, onClose, onConfirm, isPendi
                     <Printer className="w-4 h-4 mr-2" />Ticket Térmico
                   </Button>
                 )}
-                {onDownloadPDF && (
-                  <Button variant="outline" className="rounded-xl bg-slate-900 border-slate-700 text-white hover:bg-slate-800 hover:text-white" onClick={onDownloadPDF}>
-                    <Download className="w-4 h-4 mr-2" />PDF A4
+                {onPrintA4 && (
+                  <Button variant="outline" className="rounded-xl bg-slate-900 border-slate-700 text-white hover:bg-slate-800 hover:text-white" onClick={onPrintA4}>
+                    <Printer className="w-4 h-4 mr-2" />Imprimir A4
                   </Button>
                 )}
                 <Button className="rounded-xl bg-orange-600 hover:bg-orange-500 text-white border-0" onClick={handleClose}>
