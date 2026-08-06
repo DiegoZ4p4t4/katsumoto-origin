@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "sunat:test": "deno test supabase/functions/sunat-billing",
     "preview": "vite preview",
     "sunat:smoke": "deno run -A scripts/sunat_direct_smoke.ts",
     "tauri:dev": "tauri dev",
