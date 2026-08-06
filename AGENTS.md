@@ -8,15 +8,13 @@ Sistema completo que cubre: facturación electrónica SUNAT (SOAP + REST), punto
 
 ## Documentacion critica
 
-Ver `docs/` para documentacion operacional:
-- `01-signing-keys.md` — Claves de firma ed25519 (CRITICO)
-- `02-release.md` — Flujo de versiones y auto-update
-- `03-deployment.md` — Deploy EFs, secrets, verify_jwt
-- `04-architecture.md` — Arquitectura y disaster recovery
-- `06-sunat-compliance-plan.md` — Plan cumplimiento SUNAT (24 tareas, 5 fases)
-- `07-sunat-compliance-avance.md` — Avance auditoria SUNAT (25 puntos)
-- `08-sunat-session-context.md` — Contexto sesión cumplimiento SUNAT (handoff)
-- `09-technical-debt.md` — Deuda tecnica pendiente
+Ver `docs/README.md` como indice de la documentacion vigente:
+
+- `docs/funcional/` — Como DEBE funcionar el sistema (modulos, modelo fiscal, tienda)
+- `docs/tecnica/` — Como funciona POR DENTRO (arquitectura, base de datos, Edge Functions, flujos de codigo)
+- `docs/despliegue/` — Despliegue (Cloudflare Pages, Supabase, troubleshooting)
+- `docs/operativa/` — Operacion (secrets, SUNAT beta/prod, migraciones)
+- `docs/historicos/` — Auditorias y planes ejecutados (trazabilidad, no referencia vigente)
 
 ## Tech Stack
 
