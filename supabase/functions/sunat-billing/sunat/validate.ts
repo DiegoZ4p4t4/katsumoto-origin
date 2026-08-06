@@ -118,4 +118,4 @@ setInterval(() => {
   for (const [key, entry] of rateLimitMap) {
     if (now > entry.resetAt) rateLimitMap.delete(key);
   }
-}, 60_000).unref?.();
+}, 60_000);

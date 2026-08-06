@@ -40,6 +40,7 @@ export async function resolveAuth(
 
   if (!profile) return { error: error("Profile not found", 403) };
   return {
+    userId: verified.userId,
     orgId: (profile as Record<string, unknown>).organization_id,
     role: (profile as Record<string, unknown>).role,
   };
