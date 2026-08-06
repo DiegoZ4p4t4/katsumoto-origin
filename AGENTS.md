@@ -291,7 +291,7 @@ Nota: Edge Runtime no soporta JWTs ES256. Todas las EFs tienen `verify_jwt=false
 ### PENDIENTE - v2 Features
 - [ ] **Retencion (20)** - Portear RetentionBuilder del PHP a Deno
 - [ ] **Configuracion de impuestos** - Tabla tax_configurations con 1 fila, integrar con flujo de facturacion
-- [ ] **Fix note.ts AccountingSupplierParty** - Actualizar a formato PartyIdentification/schemeID="6" (igual que invoice.ts)
+- [x] **Fix note.ts AccountingSupplierParty** - Ya usa PartyIdentification/schemeID="6" (igual que invoice.ts, verificado 2026-08)
 
 ## Lecciones Aprendidas - SUNAT XML/Signing
 

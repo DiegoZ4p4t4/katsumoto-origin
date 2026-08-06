@@ -8,7 +8,7 @@ const RUC_FACTORS = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
 
 export function validateRuc(ruc: string): boolean {
   if (!/^\d{11}$/.test(ruc)) return false;
-  if (!["10", "15", "17", "20"].includes(ruc.substring(0, 2))) return false;
+  if (!/^[12]\d{10}$/.test(ruc)) return false;
 
   const digits = ruc.split("").map(Number);
   const sum = RUC_FACTORS.reduce((acc, factor, i) => acc + digits[i] * factor, 0);

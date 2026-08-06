@@ -183,3 +183,20 @@ Deno.test("buildSummaryDocument: boleta en resumen diario", () => {
   assertEquals(detalle.mto_oper_gravadas, 30.85);
   assertEquals(detalle.mto_igv, 5.55);
 });
+
+Deno.test("transformInvoiceToSunat: precio unitario consistente con cantidad>1", () => {
+  const invoice = { ...SAMPLE_INVOICE, gravada_cents: 847, igv_cents: 153, total_cents: 1000 };
+  const item = { ...SAMPLE_ITEM, quantity: 3, line_total_cents: 1000, igv_cents: 153 };
+  const result = transformInvoiceToSunat(invoice, [item], SAMPLE_CUSTOMER);
+  const doc = result.document as Record<string, unknown>;
+  const detalle = (doc.detalles as Array<Record<string, unknown>>)[0];
+
+  const valorUnitario = detalle.mto_valor_unitario as number;
+  const valorVenta = detalle.mto_valor_venta as number;
+
+  assertEquals(detalle.cantidad, 3);
+  assertEquals(valorVenta, 8.47);
+  assertEquals(Math.abs(valorUnitario * 3 - valorVenta) < 0.01, true);
+  assertEquals(detalle.mto_precio_unitario as number > 0, true);
+});
+

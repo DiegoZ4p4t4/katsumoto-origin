@@ -155,7 +155,7 @@ export function InvoiceTable({ invoices, getBranchName, onView, onUpdateStatus, 
                         <ShieldCheck className="w-3 h-3 mr-1" />Aceptar
                       </Button>
                     )}
-                    {invoice.status === "issued" && !invoice.sunat_hash && (
+                    {invoice.status === "issued" && !invoice.sunat_hash && invoice.invoice_type !== "boleta" && (
                       <Button
                         size="sm"
                         variant="outline"

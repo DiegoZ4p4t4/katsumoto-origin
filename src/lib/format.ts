@@ -63,7 +63,7 @@ export function isValidRUC(ruc: string): boolean {
   const digits = ruc.split("").map(Number);
   const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
   const remainder = sum % 11;
-  const checkDigit = remainder <= 1 ? 1 - remainder : 11 - remainder;
+  const checkDigit = remainder < 2 ? 0 : 11 - remainder;
   return checkDigit === digits[10];
 }
 
