@@ -43,6 +43,8 @@ export default function CashRegisters() {
   const [openingAmount, setOpeningAmount] = useState("");
   const [dialogBranchId, setDialogBranchId] = useState("");
   const [closingAmount, setClosingAmount] = useState("");
+  const closingValue = Number(closingAmount);
+  const closingCents = Number.isFinite(closingValue) ? Math.round(closingValue * 100) : 0;
 
   const registers = useMemo(() => {
     const regs = branchId === "all" ? allRegisters : allRegisters.filter(r => r.branch_id === branchId);
@@ -76,10 +78,13 @@ export default function CashRegisters() {
 
   const todayTotal = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
-    return registers
-      .filter(r => r.opened_at.startsWith(today))
-      .reduce((s, r) => s + (summaryMap.get(r.id)?.total ?? 0), 0);
-  }, [registers, summaryMap]);
+    return registers.reduce((sum, reg) => {
+      const txns = getTransactions(reg.id);
+      return sum + txns
+        .filter(t => t.created_at?.startsWith(today))
+        .reduce((s, t) => s + t.amount_cents, 0);
+    }, 0);
+  }, [registers, getTransactions]);
 
   const allTimeTotal = useMemo(() => {
     return registers.reduce((s, r) => s + (summaryMap.get(r.id)?.total ?? 0), 0);
@@ -129,7 +134,8 @@ export default function CashRegisters() {
 
   const handleClose = () => {
     if (!closeDialogId) return;
-    const amount = Math.round(Number(closingAmount) * 100);
+    const closingValue = Number(closingAmount);
+    const amount = Number.isFinite(closingValue) ? Math.round(closingValue * 100) : 0;
     const closeReg = allRegisters.find(r => r.id === closeDialogId);
     if (!closeReg) return;
     const summary = getSummary(closeReg);
@@ -359,16 +365,16 @@ export default function CashRegisters() {
                 <Input type="number" value={closingAmount} onChange={(e) => setClosingAmount(e.target.value)} className="rounded-xl h-12 text-lg font-bold text-center" placeholder="0.00" autoFocus />
               </div>
               {closingAmount && (
-                <div className={`p-4 rounded-xl text-center ${Math.round(Number(closingAmount) * 100) === closeSummary.expectedCash ? "bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800" : "bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800"}`}>
-                  <p className={`text-xs font-medium mb-1 ${Math.round(Number(closingAmount) * 100) === closeSummary.expectedCash ? "text-orange-600 dark:text-orange-400" : "text-amber-600 dark:text-amber-400"}`}>
+                <div className={`p-4 rounded-xl text-center ${closingCents === closeSummary.expectedCash ? "bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800" : "bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800"}`}>
+                  <p className={`text-xs font-medium mb-1 ${closingCents === closeSummary.expectedCash ? "text-orange-600 dark:text-orange-400" : "text-amber-600 dark:text-amber-400"}`}>
                     Diferencia
                   </p>
-                  <p className={`text-2xl font-bold ${Math.round(Number(closingAmount) * 100) === closeSummary.expectedCash ? "text-orange-600 dark:text-orange-400" : Math.round(Number(closingAmount) * 100) > closeSummary.expectedCash ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"}`}>
-                    {formatCents((Math.round(Number(closingAmount) * 100) - closeSummary.expectedCash) as Cents)}
+                  <p className={`text-2xl font-bold ${closingCents === closeSummary.expectedCash ? "text-orange-600 dark:text-orange-400" : closingCents > closeSummary.expectedCash ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"}`}>
+                    {formatCents((closingCents - closeSummary.expectedCash) as Cents)}
                   </p>
-                  {Math.round(Number(closingAmount) * 100) !== closeSummary.expectedCash && (
+                  {closingCents !== closeSummary.expectedCash && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      {Math.round(Number(closingAmount) * 100) > closeSummary.expectedCash ? "Sobrante" : "Faltante"}
+                      {closingCents > closeSummary.expectedCash ? "Sobrante" : "Faltante"}
                     </p>
                   )}
                 </div>

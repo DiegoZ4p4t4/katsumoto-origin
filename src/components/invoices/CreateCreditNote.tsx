@@ -98,15 +98,16 @@ export function CreateCreditNote({ invoice, open, onOpenChange, onSuccess }: Cre
     for (const si of selectedItems) {
       if (!si.selected || si.returnQuantity <= 0) continue;
       const ratio = si.returnQuantity / si.item.quantity;
+      const lineTotal = Math.round(si.item.line_total_cents * ratio);
       items.push({
         product_id: si.item.product_id,
         product_name: si.item.product_name,
         product_sku: si.item.product_sku,
         quantity: si.returnQuantity,
-        unit_price_cents: si.item.unit_price_cents,
-        discount_percent: si.item.discount_percent,
-        discount_cents: Math.round(si.item.discount_cents * ratio),
-        line_total_cents: Math.round(si.item.line_total_cents * ratio),
+        unit_price_cents: si.returnQuantity > 0 ? Math.round(lineTotal / si.returnQuantity) : 0,
+        discount_percent: 0,
+        discount_cents: 0,
+        line_total_cents: lineTotal,
         tax_affectation: si.item.tax_affectation,
         igv_cents: Math.round(si.item.igv_cents * ratio),
       });

@@ -102,7 +102,7 @@ export function exportInventoryCSV(
       csvEscape(p.description),
       csvEscape(p.unit),
       csvEscape(formatCents(p.price_cents)),
-      csvEscape(formatCents(p.cost_cents)),
+      csvEscape(formatCents(p.cost_cents ?? 0)),
       csvEscape(margin),
       csvEscape(p.stock),
       ...branches.map((b) => {

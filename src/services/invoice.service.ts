@@ -63,7 +63,8 @@ export const invoiceService = {
     formData: InvoiceFormData,
     branchId: string,
     paymentMethod: string | null,
-    registerId: string | null
+    registerId: string | null,
+    referenceInvoiceId?: string | null
   ): Promise<{ id: string; serie: string; correlativo: number }> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("No autenticado");
@@ -119,6 +120,7 @@ export const invoiceService = {
         p_register_id: registerId,
         p_notes: formData.notes || null,
         p_created_by: user.id,
+        p_reference_invoice_id: referenceInvoiceId || null,
         p_items: rpcItems,
       });
 

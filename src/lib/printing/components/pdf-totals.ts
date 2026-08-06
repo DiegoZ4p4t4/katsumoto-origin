@@ -1,6 +1,7 @@
 import type { PdfContext } from "../types";
 import { formatCents } from "../../format";
 import { IGV_RATE, PAYMENT_METHODS } from "../../constants";
+import { getNetBaseAmount } from "../../calculations";
 
 export function drawTotals(ctx: PdfContext, y: number): number {
   const { doc, invoice, pageWidth, margin } = ctx;
@@ -24,9 +25,9 @@ export function drawTotals(ctx: PdfContext, y: number): number {
   doc.setFontSize(8);
 
   doc.setTextColor(70, 70, 70);
-  doc.text("Base Imponible", col1X, y);
+  doc.text("Subtotal", col1X, y);
   doc.setTextColor(0, 0, 0);
-  doc.text(formatCents(invoice.subtotal_cents), col2X, y, { align: "right" });
+  doc.text(formatCents(getNetBaseAmount(invoice)), col2X, y, { align: "right" });
   y += lineH;
 
   if (invoice.gravada_cents > 0) {

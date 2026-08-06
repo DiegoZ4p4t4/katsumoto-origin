@@ -394,7 +394,7 @@ export default function Dashboard() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold font-mono">{invoice.serie}-{String(invoice.correlativo).padStart(8, "0")}</span>
+                            <span className="text-sm font-semibold font-mono">{invoice.serie}-{String(invoice.correlativo).padStart(6, "0")}</span>
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${st?.color || "bg-muted text-muted-foreground"}`}>
                               <StatusIcon className="w-3 h-3" />{st?.label || invoice.status}
                             </span>

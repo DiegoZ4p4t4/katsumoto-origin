@@ -137,7 +137,7 @@ export function ProductDetailDialog({ product, open, onClose, onEdit, onAdjustSt
               </div>
               <div className="bg-white/10 rounded-xl p-3 text-center backdrop-blur-sm">
                 <Tag className="w-4 h-4 mx-auto mb-1 text-emerald-200" />
-                <p className="text-lg font-bold text-white">{formatCents(product.cost_cents)}</p>
+                <p className="text-lg font-bold text-white">{formatCents(product.cost_cents ?? 0)}</p>
                 <p className="text-[10px] text-emerald-200">Costo {margin ? `(${margin}%)` : ""}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-3 text-center backdrop-blur-sm">

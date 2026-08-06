@@ -76,7 +76,7 @@ export function ProductOverviewTab({ product, stockStatus, stockPercent, margin,
         <div className="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-800">
           <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wider">Valor al Costo</p>
           <p className="text-lg font-bold text-purple-700 dark:text-purple-300 mt-1">{formatCents(costValue)}</p>
-          <p className="text-[10px] text-purple-500 dark:text-purple-400/70 mt-0.5">{product.stock} × {formatCents(product.cost_cents)}</p>
+          <p className="text-[10px] text-purple-500 dark:text-purple-400/70 mt-0.5">{product.stock} × {formatCents(product.cost_cents ?? 0)}</p>
         </div>
         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800">
           <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">Valor de Venta</p>

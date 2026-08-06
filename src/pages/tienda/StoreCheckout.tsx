@@ -79,7 +79,7 @@ export default function StoreCheckout() {
       let taxAffectation: TaxAffectation = item.product.tax_affectation || "gravado";
       if (taxDetermination) {
         const productTax = item.product.tax_affectation;
-        if (productTax === "exportacion") taxAffectation = "exportacion";
+        if (productTax === "exportacion") taxAffectation = "inafecto";
         else if (productTax === "inafecto") taxAffectation = "inafecto";
         else if (taxDetermination.affectation === "exonerado") taxAffectation = "exonerado";
         else if (productTax === "exonerado") taxAffectation = "exonerado";

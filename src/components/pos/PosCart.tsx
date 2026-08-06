@@ -293,9 +293,9 @@ export const PosCart = memo(function PosCart({
           )}
           <div className="px-3 pt-3 pb-1 space-y-1">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400">Base</span>
+              <span className="text-slate-400">Subtotal</span>
               <span className="text-slate-600 dark:text-slate-300 tabular-nums">
-                {formatCents(calc.subtotal_cents)}
+                {formatCents(calc.gravada_cents + calc.exonerada_cents + calc.inafecta_cents + calc.exportacion_cents)}
               </span>
             </div>
             <div className="flex justify-between text-xs">

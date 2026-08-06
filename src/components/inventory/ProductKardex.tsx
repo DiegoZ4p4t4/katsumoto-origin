@@ -76,7 +76,7 @@ export function ProductKardex({ product, open, onClose }: ProductKardexProps) {
     // Calculate running totals from ALL movements first
     let runningQty = 0;
     let runningTotalCost = 0;
-    let runningAvgCost = product.cost_cents; // initial cost as baseline
+    let runningAvgCost = product.cost_cents ?? 0; // initial cost as baseline
 
     interface RunningEntry {
       date: string;
@@ -114,7 +114,7 @@ export function ProductKardex({ product, open, onClose }: ProductKardexProps) {
         entryQty = qty;
         // Use product cost_cents as the entry unit cost
         // In a real system this would come from the purchase order
-        entryCost = product.cost_cents;
+        entryCost = product.cost_cents ?? 0;
         entryTotal = qty * entryCost;
 
         runningQty += qty;

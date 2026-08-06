@@ -1,5 +1,6 @@
 import { formatCents } from "@/lib/format";
 import { IGV_RATE } from "@/lib/constants";
+import { getNetBaseAmount } from "@/lib/calculations";
 import type { InvoiceCalculation } from "@/lib/calculations";
 
 interface InvoiceCalcTotalsProps {
@@ -10,8 +11,8 @@ export function InvoiceCalcTotals({ calc }: InvoiceCalcTotalsProps) {
   return (
     <div className="mt-6 bg-orange-50/80 dark:bg-orange-900/20 rounded-xl p-5 space-y-2">
       <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">Base Imponible</span>
-        <span className="font-medium">{formatCents(calc.subtotal_cents)}</span>
+        <span className="text-muted-foreground">Subtotal (Base Imponible)</span>
+        <span className="font-medium">{formatCents(getNetBaseAmount(calc))}</span>
       </div>
       {calc.gravada_cents > 0 && (
         <div className="flex justify-between text-sm">

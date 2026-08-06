@@ -192,11 +192,12 @@ export function useSalesReport() {
       else if (inv.invoice_type === "nota_debito")
         existing.totalNotasDebito++;
 
-      existing.gravada += inv.gravada_cents;
-      existing.exonerada += inv.exonerada_cents;
-      existing.inafecta += inv.inafecta_cents;
-      existing.igv += inv.igv_cents;
-      existing.total += inv.total_cents;
+      const sign = inv.invoice_type === "nota_credito" ? -1 : 1;
+      existing.gravada += sign * inv.gravada_cents;
+      existing.exonerada += sign * inv.exonerada_cents;
+      existing.inafecta += sign * inv.inafecta_cents;
+      existing.igv += sign * inv.igv_cents;
+      existing.total += sign * inv.total_cents;
 
       map.set(key, existing);
     }

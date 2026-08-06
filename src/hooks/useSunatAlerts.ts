@@ -76,10 +76,10 @@ export function useSunatAlerts(orgId: string | undefined) {
           type: "no_cdr",
           severity: hoursSince > 24 ? "critical" : "warning",
           title: "Comprobante sin CDR",
-          description: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")} aceptado hace ${Math.round(hoursSince)}h sin CDR`,
+          description: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")} aceptado hace ${Math.round(hoursSince)}h sin CDR`,
           entityType: "invoice",
           entityId: inv.id,
-          entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")}`,
+          entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")}`,
         });
       }
 
@@ -89,10 +89,10 @@ export function useSunatAlerts(orgId: string | undefined) {
           type: "rejected",
           severity: "critical",
           title: "Comprobante rechazado",
-          description: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")}: ${inv.sunat_error_message || inv.sunat_error_code}`,
+          description: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")}: ${inv.sunat_error_message || inv.sunat_error_code}`,
           entityType: "invoice",
           entityId: inv.id,
-          entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")}`,
+          entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")}`,
         });
       }
 
@@ -102,10 +102,10 @@ export function useSunatAlerts(orgId: string | undefined) {
           type: "stale",
           severity: "warning",
           title: "Comprobante sin enviar (>3 días)",
-          description: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")} emitido ${inv.issue_date} sin enviar a SUNAT`,
+          description: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")} emitido ${inv.issue_date} sin enviar a SUNAT`,
           entityType: "invoice",
           entityId: inv.id,
-          entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")}`,
+          entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")}`,
         });
       }
 
@@ -136,10 +136,10 @@ export function useSunatAlerts(orgId: string | undefined) {
             type: "cert_expiring",
             severity: "critical",
             title: `Error de certificado: ${label}`,
-            description: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")}: ${inv.sunat_error_message || inv.sunat_error_code}`,
+            description: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")}: ${inv.sunat_error_message || inv.sunat_error_code}`,
             entityType: "invoice",
             entityId: inv.id,
-            entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(8, "0")}`,
+            entityLabel: `${inv.serie}-${String(inv.correlativo).padStart(6, "0")}`,
           });
         }
       }

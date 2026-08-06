@@ -90,11 +90,12 @@ export function SalesReportDialog({
       else if (inv.invoice_type === "nota_credito") row.totalNotasCredito++;
       else if (inv.invoice_type === "nota_debito") row.totalNotasDebito++;
 
-      row.gravada += inv.gravada_cents;
-      row.exonerada += inv.exonerada_cents;
-      row.inafecta += inv.inafecta_cents;
-      row.igv += inv.igv_cents;
-      row.total += inv.total_cents;
+      const sign = inv.invoice_type === "nota_credito" ? -1 : 1;
+      row.gravada += sign * inv.gravada_cents;
+      row.exonerada += sign * inv.exonerada_cents;
+      row.inafecta += sign * inv.inafecta_cents;
+      row.igv += sign * inv.igv_cents;
+      row.total += sign * inv.total_cents;
     }
 
     const sorted = Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b));

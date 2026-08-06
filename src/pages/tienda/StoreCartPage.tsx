@@ -80,7 +80,7 @@ export default function StoreCartPage() {
         <div className="lg:col-span-2 space-y-3">
           {items.map((item) => {
             const taxInfo = TAX_AFFECTATION_TYPES[item.product.tax_affectation || "gravado"];
-            const lineTotal = item.product.price_cents * item.quantity;
+            const lineTotal = (item.product.price_cents ?? 0) * item.quantity;
             return (
               <div key={item.product.id} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow">
                 <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">

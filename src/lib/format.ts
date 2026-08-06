@@ -74,6 +74,6 @@ export function isValidDNI(dni: string): boolean {
 
 /** Genera el número de comprobante en formato SUNAT: Serie-Correlativo */
 export function formatInvoiceNumber(serie: string, correlativo: number): string {
-  return `${serie}-${String(correlativo).padStart(8, "0")}`;
+  return `${serie}-${String(correlativo).padStart(6, "0")}`;
 }
 

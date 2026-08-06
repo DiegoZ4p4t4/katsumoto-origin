@@ -123,7 +123,7 @@ export default function SunatDocuments() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium font-mono">
-                        {doc.serie}-{String(doc.correlativo).padStart(8, "0")}
+                        {doc.serie}-{String(doc.correlativo).padStart(6, "0")}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {doc.type === "invoice" ? "Comprobante" : "Guía"} · {doc.issue_date}

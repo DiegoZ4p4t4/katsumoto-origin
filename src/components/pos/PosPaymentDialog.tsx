@@ -34,8 +34,9 @@ export function PosPaymentDialog({ open, totalCents, onClose, onConfirm, isPendi
   const [cashReceived, setCashReceived] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const receivedCents = Math.round(Number(cashReceived) * 100);
-  const change = cashReceived ? Math.max(0, receivedCents - totalCents) : 0;
+  const receivedValue = Number(cashReceived);
+  const receivedCents = Number.isFinite(receivedValue) ? Math.round(receivedValue * 100) : 0;
+  const change = cashReceived && Number.isFinite(receivedValue) ? Math.max(0, receivedCents - totalCents) : 0;
   const isCashShort = method === "cash" && cashReceived && receivedCents < totalCents;
   const canConfirm = method !== "cash" || receivedCents >= totalCents;
 

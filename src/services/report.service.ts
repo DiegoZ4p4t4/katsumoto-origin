@@ -89,7 +89,7 @@ export const reportService = {
     const orgId = await getCurrentOrgId();
     let query = supabase
       .from("invoices")
-      .select("*, customer:customers(id, name, document_number, document_type)")
+      .select("*, customer:customers(id, name, document_number, document_type), invoice_items(discount_cents)")
       .eq("organization_id", orgId)
       .gte("issue_date", filters.dateFrom)
       .lte("issue_date", filters.dateTo)
@@ -114,8 +114,12 @@ export const reportService = {
         ? getReferenceInvoice(inv.reference_invoice_id)
         : null;
 
+      const rawItems = (inv as unknown as {
+        invoice_items?: Array<{ discount_cents?: number | null }>;
+      }).invoice_items;
+      const discountItems = rawItems?.length ? rawItems : inv.items || [];
       const discountCents =
-        inv.items?.reduce((sum, item) => sum + item.discount_cents, 0) || 0;
+        discountItems.reduce((sum, item) => sum + (item.discount_cents || 0), 0) || 0;
 
       return {
         id: inv.id,
@@ -142,7 +146,7 @@ export const reportService = {
         gratuita: 0,
         refSerie: ref?.serie || null,
         refCorrelativo: ref
-          ? String(ref.correlativo).padStart(8, "0")
+          ? String(ref.correlativo).padStart(6, "0")
           : null,
         refIssueDate: ref?.issue_date || null,
         status: inv.status,
@@ -188,7 +192,7 @@ export const reportService = {
       formatDate(row.issueDate),
       getInvoiceTypeLabel(row.invoiceType),
       row.serie,
-      String(row.correlativo).padStart(8, "0"),
+      String(row.correlativo).padStart(6, "0"),
       row.customerName,
       row.customerDocument,
       row.currency,

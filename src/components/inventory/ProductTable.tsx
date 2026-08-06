@@ -328,7 +328,7 @@ export const ProductTable = memo(function ProductTable({
                                 ))}
                               </div>
                               <div className="mt-2 pt-2 border-t text-[10px] text-muted-foreground">
-                                Costo: {formatCents(product.cost_cents)}
+                                Costo: {formatCents(product.cost_cents ?? 0)}
                               </div>
                             </TooltipContent>
                           </Tooltip>

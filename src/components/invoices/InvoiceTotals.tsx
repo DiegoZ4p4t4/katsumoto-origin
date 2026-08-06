@@ -1,5 +1,6 @@
 import { formatCents } from "@/lib/format";
 import { IGV_RATE } from "@/lib/constants";
+import { getNetBaseAmount } from "@/lib/calculations";
 import type { Invoice } from "@/lib/types";
 
 interface InvoiceTotalsProps {
@@ -11,8 +12,8 @@ export function InvoiceTotals({ invoice }: InvoiceTotalsProps) {
     <div className="bg-orange-50/80 dark:bg-orange-900/20 rounded-xl p-4 space-y-2">
       <p className="text-[10px] font-semibold text-orange-700 dark:text-orange-400 uppercase tracking-wider mb-2">Desglose Tributario SUNAT</p>
       <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">Base Imponible</span>
-        <span>{formatCents(invoice.subtotal_cents)}</span>
+        <span className="text-muted-foreground">Subtotal (Base Imponible)</span>
+        <span>{formatCents(getNetBaseAmount(invoice))}</span>
       </div>
       {invoice.gravada_cents > 0 && (
         <div className="flex justify-between text-sm">

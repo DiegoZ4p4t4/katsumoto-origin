@@ -47,21 +47,23 @@ export function computeDashboardSales(invoices: Invoice[], now: Date = new Date(
 
   for (const inv of validInvoices) {
     const dateKey = getDateKey(inv.issue_date);
+    const sign = inv.invoice_type === "nota_credito" ? -1 : 1;
+    const isSale = inv.invoice_type !== "nota_credito";
 
     if (dateKey === todayKey) {
-      todaySales += inv.total_cents;
-      todayCount++;
+      todaySales += sign * inv.total_cents;
+      if (isSale) todayCount++;
     }
 
     if (dateKey >= monthStart) {
-      monthSales += inv.total_cents;
-      monthCount++;
+      monthSales += sign * inv.total_cents;
+      if (isSale) monthCount++;
     }
 
     const dayEntry = last7Days.get(dateKey);
     if (dayEntry) {
-      dayEntry.total += inv.total_cents;
-      dayEntry.count++;
+      dayEntry.total += sign * inv.total_cents;
+      if (isSale) dayEntry.count++;
     }
   }
 

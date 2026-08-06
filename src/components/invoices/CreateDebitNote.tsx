@@ -93,9 +93,9 @@ export function CreateDebitNote({ invoice, open, onOpenChange, onSuccess }: Crea
         product_id: si.item.product_id || undefined,
         product_name: si.item.product_name,
         product_sku: si.item.product_sku || undefined,
-        quantity: si.item.quantity,
-        unit_price_cents: Math.round(si.item.unit_price_cents * (1 + ratio)) as Cents,
-        discount_percent: si.item.discount_percent,
+        quantity: 1,
+        unit_price_cents: Math.round(si.item.line_total_cents * ratio) as Cents,
+        discount_percent: 0,
         tax_affectation: si.item.tax_affectation,
       });
     }
@@ -119,6 +119,7 @@ export function CreateDebitNote({ invoice, open, onOpenChange, onSuccess }: Crea
         invoice.branch_id,
         null,
         null,
+        invoice.id,
       );
 
       showSuccess(`Nota de Débito ${result.serie}-${String(result.correlativo).padStart(6, "0")} creada`);
