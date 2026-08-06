@@ -167,7 +167,7 @@ export const ProductTable = memo(function ProductTable({
                             </p>
                             <span className="text-[10px] text-muted-foreground font-mono hidden xl:inline">
                               {" "}
-                              {"\·"} {product.barcode}
+                              {"·"} {product.barcode}
                             </span>
                           </div>
                         </div>
@@ -197,7 +197,7 @@ export const ProductTable = memo(function ProductTable({
                       <div className="flex justify-center">
                         {machines.length === 0 ? (
                           <span className="text-xs text-muted-foreground/50">
-                            {"\—"}
+                            {"—"}
                           </span>
                         ) : (
                           <Tooltip>
@@ -236,7 +236,7 @@ export const ProductTable = memo(function ProductTable({
                                           {m.name}
                                         </p>
                                         <p className="text-[10px] text-muted-foreground">
-                                          {m.brand} {"\·"} {m.model}
+                                          {m.brand} {"·"} {m.model}
                                         </p>
                                       </div>
                                     </div>
@@ -284,7 +284,7 @@ export const ProductTable = memo(function ProductTable({
                                 {marginInfo.min === marginInfo.max
                                   ? marginInfo.min.toFixed(0) + "%"
                                   : marginInfo.min.toFixed(0) +
-                                    "%\–" +
+                                    "%–" +
                                     marginInfo.max.toFixed(0) +
                                     "%"}
                               </div>
@@ -308,7 +308,7 @@ export const ProductTable = memo(function ProductTable({
                                         {d.label}
                                       </span>
                                       <span className="text-muted-foreground/50">
-                                        ({"\≥"}
+                                        ({"≥"}
                                         {d.min_quantity})
                                       </span>
                                     </div>
@@ -393,10 +393,10 @@ export const ProductTable = memo(function ProductTable({
                         </div>
                         <div className="flex justify-between w-20 text-[9px] text-muted-foreground">
                           <span>
-                            {"m\ín"} {product.min_stock}
+                            {"mín"} {product.min_stock}
                           </span>
                           <span>
-                            {"m\áx"} {product.max_stock}
+                            {"máx"} {product.max_stock}
                           </span>
                         </div>
                       </div>

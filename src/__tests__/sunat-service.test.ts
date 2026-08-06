@@ -58,7 +58,7 @@ describe('sunat.service — integración Edge Function', () => {
     it('invoca sunat-credentials con action=save', async () => {
       mockInvoke.mockResolvedValueOnce({ data: { ruc: '20608183672', is_configured: true }, error: null });
       const fd = { ruc: '20608183672', razon_social: 'TEST', usuario_sol: 'U', clave_sol: 'P' };
-      const result = await sunatService.saveConfig(fd as any);
+      const result = await sunatService.saveConfig(fd);
       expect(mockInvoke).toHaveBeenCalledWith('sunat-credentials', { body: { action: 'save', formData: fd } });
       expect(result.ruc).toBe('20608183672');
     });

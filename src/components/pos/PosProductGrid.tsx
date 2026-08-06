@@ -71,7 +71,7 @@ export function PosProductGrid({ products, priceTiers, onAdd, disabled }: PosPro
       : null;
 
     return managedGroups
-      .filter((g) => !familyId || g.family_id === familyId.key || g.family_id === (familyId as any).id)
+      .filter((g) => !familyId || g.family_id === familyId.key || g.family_id === familyId.id)
       .map((g) => {
         const count = products.filter((p) => p.category_group === g.label || p.category_group === g.key).length;
         return { ...g, count };

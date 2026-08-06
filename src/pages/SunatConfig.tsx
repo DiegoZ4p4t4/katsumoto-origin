@@ -43,6 +43,8 @@ export default function SunatConfig() {
     uploadCertificate, isUploading,
   } = useSunatMutations();
 
+  const certTestInfo = (testResult as { result?: { certificate_subject?: string; certificate_not_after?: string; digest_value?: string } } | undefined)?.result;
+
   const [local, setLocal] = useState<SunatConfigFormData>(emptyForm);
   const [pendingCertSave, setPendingCertSave] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -479,14 +481,14 @@ export default function SunatConfig() {
                   {testResult.success ? (
                     <div className="space-y-1">
                       <p className="font-medium text-emerald-700 dark:text-emerald-300">Certificado válido</p>
-                      {(testResult as any).result?.certificate_subject && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400">Subject: {(testResult as any).result.certificate_subject}</p>
+                      {certTestInfo?.certificate_subject && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">Subject: {certTestInfo.certificate_subject}</p>
                       )}
-                      {(testResult as any).result?.certificate_not_after && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400">Vence: {new Date((testResult as any).result.certificate_not_after).toLocaleDateString("es-PE")}</p>
+                      {certTestInfo?.certificate_not_after && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">Vence: {new Date(certTestInfo.certificate_not_after).toLocaleDateString("es-PE")}</p>
                       )}
-                      {(testResult as any).result?.digest_value && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">Hash: {(testResult as any).result.digest_value.substring(0, 16)}...</p>
+                      {certTestInfo?.digest_value && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">Hash: {certTestInfo.digest_value.substring(0, 16)}...</p>
                       )}
                     </div>
                   ) : (
