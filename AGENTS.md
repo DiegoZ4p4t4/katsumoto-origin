@@ -181,6 +181,11 @@ Proxy seguro para consultas RUC/DNI. Lee `APIS_PERU_TOKEN` de secrets.
 
 `SUNAT_DIRECT_ENABLED=true`, `APIS_PERU_TOKEN`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`
 
+> **CRITICO — SUNAT_CREDENTIALS_KEY (regenerada 2026-08-06):** la clave anterior se perdio del proyecto,
+> lo que rompia la EF sunat-credentials (500). Se genero una nueva y se guardo en el project secret.
+> El valor esta respaldado en el gestor de passwords del administrador (NO en el repo). Si se pierde,
+> hay que regenerarla y reingresar clave_sol/certificado_password en Configuracion SUNAT.
+
 ## Certificado Digital
 
 PEMs en Storage bucket `sunat-documents`:
