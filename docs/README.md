@@ -17,6 +17,8 @@ Esta carpeta agrupa la documentación vigente del sistema, organizada por tipo. 
 
 ## Índice
 
+- **General**
+  - [00 — Sesión 2026-08-05/06 (análisis exhaustivo y trabajos)](00-sesion-2026-08-05-06.md)
 - **Funcional**
   - [01 — Módulos y reglas de negocio](funcional/01-modulos.md)
   - [02 — Modelo fiscal SUNAT](funcional/02-fiscal.md)
@@ -26,14 +28,17 @@ Esta carpeta agrupa la documentación vigente del sistema, organizada por tipo. 
   - [02 — Base de datos](tecnica/02-base-de-datos.md)
   - [03 — Edge Functions](tecnica/03-edge-functions.md)
   - [04 — Flujos de código](tecnica/04-flujos-codigo.md)
+  - [05 — Inventario de código](tecnica/05-inventario-codigo.md)
 - **Despliegue**
   - [01 — Cloudflare Pages](despliegue/01-cloudflare-pages.md)
   - [02 — Supabase (migraciones, EF, secrets)](despliegue/02-supabase.md)
   - [03 — Troubleshooting](despliegue/03-troubleshooting.md)
+  - [04 — Otros targets (Docker, Vercel, nginx)](despliegue/04-otros-targets.md)
 - **Operativa**
   - [01 — Secrets y respaldos](operativa/01-secrets.md)
   - [02 — Operaciones SUNAT](operativa/02-sunat.md)
   - [03 — Workflow de migraciones](operativa/03-migraciones.md)
+  - [04 — Respaldos y continuidad](operativa/04-respaldos.md)
 
 ## Documentos históricos (auditorías y planes ejecutados)
 

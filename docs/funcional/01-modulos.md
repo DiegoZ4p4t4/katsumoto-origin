@@ -135,6 +135,68 @@ Ver detalle completo en `03-tienda.md`.
 
 ---
 
+## 9. Guías de remisión (GRE)
+
+**Propósito:** emitir y enviar guías de remisión electrónicas (traslados).
+
+**Flujo:** crear guía (serie `T001`, motivo de traslado, remitente/destino/transportista/conductor/vehículo, ítems) → enviar a SUNAT (REST OAuth2, asíncrono) → consultar ticket.
+
+**Reglas:**
+- Estados: `draft`, `issued`, `processing`, `accepted`, `rejected`, `cancelled`.
+- El envío siempre es **asíncrono** (ticket): `send-despatch` → `processing`; `check-despatch-ticket` resuelve (0=aceptada, 98=proceso, 99=rechazada).
+- **Bloqueado actualmente:** las credenciales OAuth2 GRE (client_id/secret) son del sistema viejo y SUNAT las rechaza. Requiere regenerarlas en **SUNAT Menú SOL → OAuth2**.
+- No descuenta stock (la guía no afecta inventario).
+
+## 10. Reportes
+
+**Propósito:** reportes contables y de ventas (por día/semana/mes, agrupados).
+
+- Filtros por rango de fechas, sede, cliente, método de pago, tipo de documento.
+- Exportación CSV/Excel.
+- Métricas: ventas (gravadas/exoneradas/IGV), cobrado vs por cobrar, margen.
+
+## 11. Configuración tributaria
+
+**Propósito:** parametrizar la Ley de Amazonía.
+
+- `tax_configurations`: `selva_law_enabled`, datos del vendedor (ubigeo/selva), `default_tax_affectation`, plantilla legal.
+- Nota: `default_tax_affectation` se usa como default al crear productos; la determinación real la hace `tax-engine` según la operación (ver `02-fiscal.md`).
+
+## 12. Sedes
+
+**Propósito:** gestionar sucursales (tipo `warehouse` / `pos` / `online`).
+
+- Cada sede tiene prefijo de serie de comprobante, zona selva, y stock propio (`branch_stock`).
+- `online` = la sede de la tienda web. `warehouse` = almacén (no vende; recibe el fulfillment de pedidos).
+- Al crear una sede se siembra `branch_stock` para productos existentes (trigger).
+
+## 13. Impresora
+
+**Propósito:** configurar la impresión del ticket térmico.
+
+- ESC/POS (impresora física, vía Tauri/desktop) o PDF (browser).
+- Config: ancho (58/80mm), auto-corte, gaveta, copias.
+- El contenido del ticket incluye: cabecera (RUC, razón social, teléfono, email), comprobante, cliente, ítems, desglose, total, SON en letras, pago, Recibido/Vuelto, QR + hash, pie de página configurable (`sunat_config.ticket_footer`).
+
+## 14. Sistema
+
+**Propósito:** info de la app (versión), chequeo de actualizaciones y plataforma.
+
+- Versión leída de `src-tauri/tauri.conf.json` (v2.1.7).
+- El auto-update de Tauri está deprioritizado (no hay build desktop).
+
+## 15. Productos (CRUD)
+
+**Propósito:** catálogo de repuestos.
+
+- Datos: nombre, SKU, código de barras, familia/grupo/categoría, unidad, precios (venta/costo), stock mín/máx, afectación tributaria, tags, imagen, proveedor.
+- Escalas de precio por cantidad (`price_tiers`).
+- Importación CSV con mapeo de columnas y validación.
+- Compatibilidad con modelos de máquina (`product_machines`).
+- Al crear/editar un producto se siembra `branch_stock` (trigger).
+
+---
+
 ## Multi-tenant
 
 - Aislamiento por `organization_id` en todas las tablas (RLS + validación en RPC).
