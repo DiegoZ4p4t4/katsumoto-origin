@@ -1,5 +1,6 @@
 import type { PdfContext } from "../types";
 import { INVOICE_TYPES } from "../../constants";
+import { loadImageAsBase64 } from "../load-image";
 
 const LOGO_MAX_W = 28;
 const LOGO_MAX_H = 14;
@@ -12,22 +13,6 @@ function formatDatePDF(dateStr: string): string {
     month: "2-digit",
     day: "2-digit",
   });
-}
-
-async function loadImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
 }
 
 export async function drawHeader(ctx: PdfContext, y: number): Promise<number> {

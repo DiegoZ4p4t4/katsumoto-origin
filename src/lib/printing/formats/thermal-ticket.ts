@@ -7,6 +7,7 @@ import { INVOICE_TYPES, IGV_RATE, PAYMENT_METHODS } from "../../constants";
 import { formatCents } from "../../format";
 import { getLegalBasisText, determineTax } from "../../tax-engine";
 import { INVOICE_TYPE_SUNAT_CODE, DOCUMENT_TYPE_SUNAT_CODE } from "../../types/sunat";
+import { loadImageAsBase64 } from "../load-image";
 
 const W = 58;
 const M = 2;
@@ -70,6 +71,7 @@ function centsToText(cents: number): string {
 
 function estimateHeight(invoice: Invoice, sellerInfo: SellerInfo, options?: PrintOptions): number {
   let h = 10;
+  if (sellerInfo.logoUrl) h += 21;
   h += 6; // biz name
   if (sellerInfo.nombreComercial && sellerInfo.razonSocial && sellerInfo.nombreComercial !== sellerInfo.razonSocial) h += 4;
   h += sellerInfo.ruc ? 4 : 0;
@@ -100,7 +102,7 @@ function estimateHeight(invoice: Invoice, sellerInfo: SellerInfo, options?: Prin
   if (options?.taxConfig && invoice.exonerada_cents > 0) h += 12;
   if (invoice.sunat_hash) h += 38;
   if (sellerInfo.ticketFooter) h += 8;
-  h += 12; // footer + margin
+  h += 20; // footer + margen de seguridad (evita corte en la impresora)
   return Math.max(h, 80);
 }
 
@@ -113,6 +115,7 @@ export async function generateThermalTicket(
 ): Promise<jsPDF> {
   const totalH = estimateHeight(invoice, sellerInfo, options);
   const doc = new jsPDF({ unit: "mm", format: [W, totalH] });
+  const logoData = sellerInfo.logoUrl ? await loadImageAsBase64(sellerInfo.logoUrl) : null;
 
   function ctext(text: string, y: number, size: number) {
     if (!text) return;
@@ -143,6 +146,25 @@ export async function generateThermalTicket(
   }
 
   let y = 4;
+
+  // ═══════════════════════════════════════════
+  // LOGO
+  // ═══════════════════════════════════════════
+
+  if (logoData) {
+    try {
+      const props = doc.getImageProperties(logoData);
+      const aspect = props.height / props.width;
+      let logoW = 40;
+      let logoH = logoW * aspect;
+      if (logoH > 18) {
+        logoH = 18;
+        logoW = logoH / aspect;
+      }
+      doc.addImage(logoData, "PNG", (W - logoW) / 2, y, logoW, logoH);
+      y += logoH + 3;
+    } catch { /* skip logo */ }
+  }
 
   // ═══════════════════════════════════════════
   // HEADER
