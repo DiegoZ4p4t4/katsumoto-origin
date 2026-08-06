@@ -486,6 +486,14 @@ async function handleSend(
   const customerRecord = customer as DbRecord | null;
   if (!customerRecord) return error("Customer not found", 404, "NO_CUSTOMER");
 
+  if (invoiceRecord.invoice_type === "boleta") {
+    return error(
+      "Las boletas se envían mediante resumen diario (send-summary), no por sendBill.",
+      422,
+      "USE_SEND_SUMMARY",
+    );
+  }
+
   if (
     invoiceRecord.invoice_type === "factura" &&
     customerRecord.document_type !== "RUC"
