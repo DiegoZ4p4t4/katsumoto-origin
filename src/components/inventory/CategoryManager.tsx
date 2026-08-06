@@ -222,7 +222,7 @@ export function CategoryManager() {
           ? "Familia"
           : dialogNodeType === "group"
           ? "Grupo"
-          : "Categor\ía") + " creada"
+          : "Categoría") + " creada"
       );
     } else {
       if (dialogNodeType === "family") {
@@ -331,7 +331,7 @@ export function CategoryManager() {
       active: "bg-pink-600 text-white",
     },
     {
-      label: "\Ámbar",
+      label: "Ámbar",
       color:
         "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
       active: "bg-amber-600 text-white",
@@ -345,13 +345,13 @@ export function CategoryManager() {
           ? "Familia"
           : dialogNodeType === "group"
           ? "Grupo"
-          : "Categor\ía")
+          : "Categoría")
       : "Editar " +
         (dialogNodeType === "family"
           ? "Familia"
           : dialogNodeType === "group"
           ? "Grupo"
-          : "Categor\ía");
+          : "Categoría");
 
   return (
     <div className="space-y-6">
@@ -362,7 +362,7 @@ export function CategoryManager() {
             Gestión de Categorías
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Administra la jerarqu\ía de familias, grupos y categor\ías
+            Administra la jerarquía de familias, grupos y categorías
             para organizar tus productos
           </p>
         </div>
@@ -444,7 +444,7 @@ export function CategoryManager() {
             <div className="text-center py-16">
               <FolderTree className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground font-medium">
-                No hay categor\ías configuradas
+                No hay categorías configuradas
               </p>
               <p className="text-xs text-muted-foreground/60 mt-1">
                 Crea tu primera familia para comenzar
@@ -493,7 +493,7 @@ export function CategoryManager() {
                             {groups.length} grupo
                             {groups.length !== 1 ? "s" : ""} &middot;{" "}
                             {totalCategories} categor
-                            {totalCategories !== 1 ? "\ías" : "\ía"}
+                            {totalCategories !== 1 ? "ías" : "ía"}
                           </p>
                         </div>
 
@@ -574,8 +574,8 @@ export function CategoryManager() {
                                     <p className="text-[10px] text-muted-foreground">
                                       {categories.length} categor
                                       {categories.length !== 1
-                                        ? "\ías"
-                                        : "\ía"}
+                                        ? "ías"
+                                        : "ía"}
                                     </p>
                                   </div>
 
@@ -585,7 +585,7 @@ export function CategoryManager() {
                                         openAddDialog("category", group.id)
                                       }
                                       className="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-                                      title="Agregar categor\ía"
+                                      title="Agregar categoría"
                                     >
                                       <Plus className="w-3.5 h-3.5 text-green-500" />
                                     </button>
@@ -642,7 +642,7 @@ export function CategoryManager() {
                                               openEditDialog("category", cat)
                                             }
                                             className="p-1.5 hover:bg-muted rounded-lg transition-colors"
-                                            title="Editar categor\ía"
+                                            title="Editar categoría"
                                           >
                                             <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                                           </button>
@@ -656,7 +656,7 @@ export function CategoryManager() {
                                               setDeleteOpen(true);
                                             }}
                                             className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                            title="Eliminar categor\ía"
+                                            title="Eliminar categoría"
                                           >
                                             <Trash2 className="w-3.5 h-3.5 text-red-400" />
                                           </button>
@@ -668,7 +668,7 @@ export function CategoryManager() {
 
                                 {isGroupExpanded && categories.length === 0 && (
                                   <div className="ml-16 py-3 text-xs text-muted-foreground/50">
-                                    Sin categor\ías &mdash;{" "}
+                                    Sin categorías &mdash;{" "}
                                     <button
                                       onClick={() =>
                                         openAddDialog("category", group.id)
@@ -713,7 +713,7 @@ export function CategoryManager() {
             <div className="space-y-2">
               <Label>
                 {dialogNodeType === "category"
-                  ? "Nombre de la Categor\ía *"
+                  ? "Nombre de la Categoría *"
                   : "Nombre *"}
               </Label>
               <Input
@@ -725,7 +725,7 @@ export function CategoryManager() {
                     ? "Ej: Productos"
                     : dialogNodeType === "group"
                     ? "Ej: Repuestos"
-                    : "Ej: Filtraci\ón"
+                    : "Ej: Filtración"
                 }
                 autoFocus
               />
@@ -784,7 +784,7 @@ export function CategoryManager() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <ImageIcon className="w-4 h-4" />
-                  Imagen de la Categor\ía
+                  Imagen de la Categoría
                 </Label>
                 <ImageUpload
                   value={formImageUrl}
@@ -818,26 +818,26 @@ export function CategoryManager() {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {" "}
-              {"\¿"}Eliminar{" "}
+              {"¿"}Eliminar{" "}
               {deleteTarget?.type === "family"
                 ? "familia"
                 : deleteTarget?.type === "group"
                 ? "grupo"
-                : "categor\ía"}
+                : "categoría"}
               ?
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget?.type === "family"
-                ? 'Se eliminar\á "' +
+                ? 'Se eliminará "' +
                   deleteTarget.name +
-                  '" y todos sus grupos y categor\ías asociadas.'
+                  '" y todos sus grupos y categorías asociadas.'
                 : deleteTarget?.type === "group"
-                ? 'Se eliminar\á "' +
+                ? 'Se eliminará "' +
                   deleteTarget.name +
-                  '" y todas sus categor\ías asociadas.'
-                : 'Se eliminar\á la categor\ía "' +
+                  '" y todas sus categorías asociadas.'
+                : 'Se eliminará la categoría "' +
                   deleteTarget?.name +
-                  '". Los productos que la usen no se ver\án afectados, pero perder\án esta clasificaci\ón.'}
+                  '". Los productos que la usen no se verán afectados, pero perderán esta clasificación.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

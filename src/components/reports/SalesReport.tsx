@@ -82,7 +82,7 @@ export function SalesReport() {
             <Label className="text-xs text-muted-foreground">Agrupar por</Label>
             <Select
               value={report.groupBy}
-              onValueChange={(v) => report.setGroupBy(v as any)}
+              onValueChange={(v) => report.setGroupBy(v as "day" | "week" | "month")}
             >
               <SelectTrigger className="rounded-xl text-sm">
                 <SelectValue />
