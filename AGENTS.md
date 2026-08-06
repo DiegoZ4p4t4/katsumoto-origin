@@ -47,10 +47,10 @@ supabase/functions/
   sunat-billing/      # v70 - Motor de facturacion electronica SUNAT (REST + SOAP)
   sunat-credentials/  # v8  - CRUD de credenciales SUNAT (encriptado AES-256-GCM)
   apis-peru-proxy/    # v4  - Proxy RUC/DNI via apisperu.com
+supabase/migrations/  # Migraciones versionadas (2026-08+: fixes fiscales, seguridad, etc.)
+migration-sql/        # Snapshot SQL de RPCs y seed (legacy, fuente de verdad = migrations/)
 OTROS/
-  sunat-billing-api/  # PHP legacy (Greenter) - MARCADO PARA ELIMINAR
-  migration-sql/      # SQL de migración inicial (productos, stock, etc.)
-  certificado_sunat_20608183672.p12  # Certificado original (PEMs ya en Storage)
+  Inventario de referencia.xlsx, logo_katsumoto.jpeg
 ```
 
 ### Builds
@@ -61,41 +61,52 @@ pnpm build         # Build admin → dist/
 pnpm build:store   # Build tienda pública → dist-store/ (port 8552)
 ```
 
-## Base de Datos (25 tablas, todas con RLS)
+## Base de Datos (29 tablas, todas con RLS)
+
+> **Nota:** el proyecto Supabase es compartido con otra aplicacion (modulo "servicios tecnicos").
+> Las tablas `katsumoto_usuarios`, `servicios`, `piezas`, `actualizaciones` pertenecen a esa app
+> y NO se usan en el frontend de Katsumoto. Su funcion `current_user_role()` lee `katsumoto_usuarios`;
+> las politicas de Katsumoto usan `profiles.role`.
 
 | Tabla | Filas | Proposito |
 |---|---|---|
 | organizations | 2 | Multi-tenant |
-| profiles | 2 | Perfiles de usuario |
+| profiles | 2 | Perfiles de usuario (roles: owner/admin/cashier/vendedor/inventory/reader) |
+| katsumoto_usuarios | 2 | Otra app (no usar) |
 | branches | 3 | Almacen central, Sede Pichanaqui, Tienda Virtual |
-| products | 143 | Repuestos |
-| customers | 2 | Clientes de prueba (RUC + DNI) |
-| invoices / invoice_items | 2 | Factura F001-1 (cancelada) + Boleta B001-1 (emitida) |
-| sunat_config | 1 | Config SUNAT (RUC 20608183672, modo beta) |
-| sunat_summary_log | 7 | Log de resumenes/bajas (2 aceptados, 5 rejected de iteracion) |
+| products | ~143 | Repuestos |
+| customers | 20 | Clientes |
+| invoices / invoice_items | 35 / ~ | 30 boletas issued, 1 factura accepted, 1 factura cancelled, 1 factura issued, 1 NC accepted, 1 ND accepted |
+| sunat_config | 1 | Config SUNAT (RUC 20608183672, **modo_produccion=false = beta**) + `ticket_footer` |
+| sunat_summary_log | 2 | Log de resumenes/bajas |
 | despatches / despatch_items | 1 / 4 | Guia de remision T001-1 (pendiente envio REST) |
 | tax_configurations | 1 | Config impuestos (selva law habilitada) |
 | machine_models / product_machines | 48 / 115 | Modelos de maquinas y compatibilidad |
 | branch_stock | 1 | Stock por sucursal |
 | price_tiers | 40 | Precios por cantidad |
 | managed_category_families/groups/categories | 17/17/19 | Categorias gestionadas |
-| store_orders / store_order_items | 0 / 0 | Tienda online (sin pedidos) |
-| cash_registers / register_transactions | 0 / 0 | Cajas registradoras |
-| stock_movements | 2 | Movimientos de stock |
-| audit_log | 8 | Log de auditoria |
+| store_orders / store_order_items | 0 / 0 | Tienda online (sin pedidos; se crean via RPC create_store_order) |
+| cash_registers / register_transactions | 1 / 0 | Cajas registradoras |
+| stock_movements | ~2 | Movimientos de stock |
+| audit_log | ~8 | Log de auditoria |
+| servicios / piezas / actualizaciones | 1 / 0 / 0 | Otra app (no usar) |
 
-### RPC Functions (7)
+### RPC Functions (10)
 
 | Function | Params | Uso |
 |----------|--------|-----|
 | `get_next_correlativo` | `p_organization_id, p_serie` | Siguiente correlativo atómico por serie |
-| `create_invoice_with_items` | `p_organization_id, p_serie, ...` | Crea invoice + items + descuenta stock en transacción |
-| `create_credit_note` | `p_organization_id, p_parent_invoice_id, ...` | Crea nota de crédito vinculada |
+| `create_invoice_with_items` | `p_organization_id, p_serie, ...` | Crea invoice + items + descuenta stock en transacción (valida org del creador) |
+| `create_credit_note` | `p_organization_id, p_parent_invoice_id, ...` | Crea nota de crédito vinculada (IGV corregido) |
 | `insert_audit_entry` | `p_organization_id, p_action, ...` | Inserta entrada de auditoría con user_id automático |
 | `adjust_stock` | `p_organization_id, p_product_id, ...` | Ajusta stock (in/out/return/transfer) |
 | `transfer_stock` | `p_organization_id, p_product_id, ...` | Transfiere stock entre sedes (genera 2 movimientos) |
 | `fulfill_store_order` | `p_order_id` | Convierte pedido tienda → factura/boleta |
-| `get_next_register_number` | `p_branch_id` | Siguiente número de caja por sucursal |
+| `get_next_register_number` | `p_branch_id` | Siguiente número de caja por sucursal (FOR UPDATE corregido) |
+| `create_store_order` | `p_*`, `p_items jsonb` | Crea pedido tienda recalculando precios/IGV en servidor |
+| `is_owner_or_admin` | - | Helper SECURITY DEFINER para políticas (lee profiles.role) |
+
+**Seguridad RPCs:** todas las RPC de escritura tienen EXECUTE SOLO para `authenticated` (revocado de anon/PUBLIC).
 
 ## Edge Functions
 
@@ -248,6 +259,30 @@ Nota: Edge Runtime no soporta JWTs ES256. Todas las EFs tienen `verify_jwt=false
   - [x] debug-despatch y sunat-billing-consolidated ya no existen
   - [x] SUNAT_CREDENTIALS_KEY verificado en secrets
   - [x] Credenciales GRE OAuth2 guardadas en sunat_config
+
+### Revision integral 2026-08-05/06 (FASE 1-4, control de versiones local git)
+
+- [x] **FASE 1 - Integridad fiscal y datos (aplicado a produccion):**
+  - [x] NC duplicaba IGV: `create_credit_note` corregido (gravada = line_total - igv, total = subtotal) + displays NC/ND
+  - [x] `get_next_register_number`: FOR UPDATE con agregado invalido en PG15 → lock a nivel de fila + UNIQUE(org, branch, number)
+  - [x] Boletas atascadas: `check-summary-ticket` ahora propaga aceptacion/rechazo a invoices (0→accepted, 99→reset reenviable); backfill B001-1..3
+  - [x] RPCs SECURITY DEFINER: EXECUTE revocado de anon/PUBLIC (solo authenticated) + validacion de org del creador
+  - [x] CHECK despatches ampliado con processing/rejected + tipos TS alineados
+- [x] **FASE 2 - Estabilidad (0 errores TS, gate en build):**
+  - [x] Crashes corregidos: CashRegisters, MachineModels (Rules of Hooks), StoreCheckout, CreateInvoice
+  - [x] Navegacion /admin corregida (21 navigate en 6 paginas)
+  - [x] `pnpm build` ahora ejecuta `tsc --noEmit` como gate
+- [x] **FASE 3 - Seguridad:**
+  - [x] Tienda: RPC `create_store_order` recalcula precios/IGV en servidor (antes el cliente enviaba montos); RLS anon cerrado (store_orders/items/orgs)
+  - [x] `sunat-credentials`: no expone gre_client_secret, save exige owner/admin
+  - [x] Politica admin de profiles usa `is_owner_or_admin()` (lee profiles.role, no katsumoto_usuarios)
+- [x] **FASE 4a - Ticket termico:** email en cabecera, moneda SOLES (PEN), Recibido/Vuelto conectado, espaciado QR, footer configurable (`sunat_config.ticket_footer`), validacion boleta >S/700 con DNI 00000000
+- [x] **FASE 4b - Robustez:**
+  - [x] `profiles_role_check` ampliado a 6 roles (antes solo owner/admin/user → asignar cashier fallaba)
+  - [x] Trigger `on_auth_user_created` crea el perfil al invitar usuarios
+  - [x] EF Deno sin errores de tipo (`verifyToken` retorna userId, `setInterval` sin `.unref`)
+  - [x] 7 tests Deno fiscales (`pnpm sunat:test`) pinan el contrato DB→SUNAT
+  - [x] Historial de migraciones reconciliado (`supabase migration repair --status applied`)
 
 ### PENDIENTE - GRE
 - [ ] **Regenerar credenciales OAuth2 GRE** - SUNAT unifico endpoints (api-test-seguridad eliminado). client_id/client_secret actuales son del sistema viejo y SUNAT los rechaza (access_denied). Obtener nuevos desde SUNAT Menú SOL.
